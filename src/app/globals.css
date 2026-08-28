@@ -1,26 +1,91 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: local('HankenGrotesk-Light'), local('Hanken Grotesk Light');
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: local('HankenGrotesk-Regular'), local('Hanken Grotesk Regular');
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: local('HankenGrotesk-Medium'), local('Hanken Grotesk Medium');
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: local('HankenGrotesk-SemiBold'), local('Hanken Grotesk SemiBold');
+}
+
+@font-face {
+  font-family: 'Hanken Grotesk';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: local('HankenGrotesk-Bold'), local('Hanken Grotesk Bold');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: local('InterLight'), local('Inter-Light');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: local('InterRegular'), local('Inter-Regular');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: local('InterMedium'), local('Inter-Medium');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: local('InterSemiBold'), local('Inter-SemiBold');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: local('InterBold'), local('Inter-Bold');
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-hanken-grotesk: 'Hanken Grotesk', sans-serif;
+  --font-inter: 'Inter', sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
 }

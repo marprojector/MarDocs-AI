@@ -1,0 +1,187 @@
+'use client';
+
+import React from 'react';
+import { cn } from '@/lib/utils';
+
+// Import all lucide-react icons for type safety
+import {
+  FileText,
+  MessageCircle,
+  Star,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Upload,
+  ArrowRight,
+  Play,
+  BrainCircuit,
+  ShieldLock,
+  Library,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  ZoomOut,
+  ZoomIn,
+  Maximize2,
+  User,
+  Send,
+  Info,
+  Activity,
+  DollarSign,
+  TrendingUp,
+  HardDrive,
+  Lightbulb,
+  MoreVertical,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
+  Download,
+  Trash2,
+  Edit,
+  Share,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  Loader2,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  LogIn,
+  Plus,
+  Minus,
+  RefreshCw,
+  DownloadCloud,
+  Cloud,
+  CloudUpload,
+  CloudOff,
+  Server,
+  Database,
+  Key,
+  Shield,
+  Lock,
+  Unlock,
+  Users,
+  UserPlus,
+  UserMinus,
+  FileImage,
+  FileAudio,
+  FileVideo,
+  FileCode,
+  FileJson,
+  FileSpreadsheet,
+  FileArchive,
+  Mail,
+  BookOpen,
+  Globe,
+  GitBranch,
+  MailOpen,
+} from 'lucide-react';
+
+const iconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
+  FileText,
+  MessageCircle,
+  Star,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Upload,
+  ArrowRight,
+  Play,
+  BrainCircuit,
+  ShieldLock,
+  Library,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  ZoomOut,
+  ZoomIn,
+  Maximize2,
+  User,
+  Send,
+  Info,
+  Activity,
+  DollarSign,
+  TrendingUp,
+  HardDrive,
+  Lightbulb,
+  MoreVertical,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
+  Download,
+  Trash2,
+  Edit,
+  Share,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+  Loader2,
+  Menu,
+  X,
+  Sun,
+  Moon,
+  LogIn,
+  Plus,
+  Minus,
+  RefreshCw,
+  DownloadCloud,
+  Cloud,
+  CloudUpload,
+  CloudOff,
+  Server,
+  Database,
+  Key,
+  Shield,
+  Lock,
+  Unlock,
+  Users,
+  UserPlus,
+  UserMinus,
+  FileImage,
+  FileAudio,
+  FileVideo,
+  FileCode,
+  FileJson,
+  FileSpreadsheet,
+  FileArchive,
+  Mail,
+  BookOpen,
+  Globe,
+  GitBranch,
+  MailOpen,
+};
+
+interface IconProps {
+  name: string;
+  size?: number | string;
+  className?: string;
+  [key: string]: unknown;
+}
+
+const Icon: React.FC<IconProps> = ({
+  name,
+  size = 24,
+  className,
+}) => {
+  const IconComponent = iconMap[name];
+
+  if (!IconComponent) {
+    console.error(`Icon "${name}" not found in iconMap`);
+    return null;
+  }
+
+  // Type assertion to handle lucide-react's props
+  const props = {
+    size,
+    className: cn(className),
+  } as React.SVGProps<SVGSVGElement>;
+
+  return <IconComponent {...props} />;
+};
+
+export { Icon };
