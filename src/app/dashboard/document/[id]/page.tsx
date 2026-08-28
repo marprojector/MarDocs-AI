@@ -19,7 +19,10 @@ interface Document {
   fileType: string;
   fileSize: number;
   fileUrl: string;
+  extractedText?: string;
   status: string;
+  processedAt?: string;
+  processingError?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +50,7 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
     editedTitle: '',
     editedDescription: '',
   });
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -183,6 +187,49 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
       } catch (err) {
         setData({ ...data, error: 'Failed to download file' });
       }
+    }
+  };
+
+  const handleProcessDocument = async () => {
+    if (!data.document) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch(`/api/documents/process`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: data.document.id }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setData((prev) => ({
+          ...prev,
+          document: result.status ? { ...prev.document!, status: result.status } : prev.document,
+          successMessage: result.message || 'Document processing completed successfully',
+        }));
+        setTimeout(() => setData((prev) => ({ ...prev, successMessage: null })), 3000);
+      } else {
+        const errorData = await response.json();
+        setData({ ...data, error: errorData.error || 'Processing failed' });
+      }
+    } catch (err) {
+      setData({ ...data, error: 'Network error during processing' });
+    } finally {
+      setIsProcessing(false);
+      fetchDocument();
+    }
+  };
+
+  const fetchDocument = async () => {
+    try {
+      const response = await fetch(`/api/documents/${params.id}`);
+      if (response.ok) {
+        const document = await response.json();
+        setData((prev) => ({ ...prev, document }));
+      }
+    } catch (err) {
+      console.error('Failed to refresh document:', err);
     }
   };
 
@@ -333,6 +380,24 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
             </div>
           </Card>
 
+          {data.document.status === 'COMPLETED' && data.document.extractedText && (
+            <Card className="bg-[#0c0f10] border-[#958da1]/20">
+              <CardHeader className="border-b border-[#958da1]/20 bg-[#1d2021]/50">
+                <CardTitle className="text-[#e1e3e4]">Extracted Text</CardTitle>
+                <CardDescription className="text-[#ccc3d8]">
+                  {data.document.extractedText.length} characters extracted
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-[500px] overflow-y-auto bg-[#050505] p-6">
+                  <pre className="prose prose-invert max-w-none text-sm text-[#ccc3d8] font-mono whitespace-pre-wrap">
+                    {data.document.extractedText}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Document Actions */}
           <div className="flex flex-wrap gap-3">
             <Button onClick={handleOpenFile}>
@@ -343,6 +408,36 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
               <Icon name="DownloadCloud" size={16} className="mr-2" />
               Download
             </Button>
+            {data.document.status === 'PENDING' && (
+              <Button onClick={handleProcessDocument} disabled={isProcessing}>
+                {isProcessing ? (
+                  <>
+                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="FileText" size={16} className="mr-2" />
+                    Process Document
+                  </>
+                )}
+              </Button>
+            )}
+            {data.document.status === 'FAILED' && (
+              <Button variant="outline" onClick={handleProcessDocument} disabled={isProcessing}>
+                {isProcessing ? (
+                  <>
+                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="RefreshCw" size={16} className="mr-2" />
+                    Retry Processing
+                  </>
+                )}
+              </Button>
+            )}
             {data.isEditing ? (
               <>
                 <Button onClick={handleSave} className="bg-[#7c3aed] hover:bg-[#6d37d6]">
@@ -383,7 +478,7 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                     data.document.status === 'COMPLETED'
                       ? 'default'
                       : data.document.status === 'FAILED'
-                      ? 'default'
+                      ? 'outline'
                       : 'default'
                   }
                   size="sm"
@@ -391,6 +486,18 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                   {data.document.status}
                 </Chip>
               </div>
+              {data.document.processedAt && (
+                <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
+                  <span className="text-sm text-[#ccc3d8]">Processed</span>
+                  <span className="text-sm text-[#ccc3d8]">{formatDate(data.document.processedAt)}</span>
+                </div>
+              )}
+              {data.document.processingError && (
+                <div className="py-2 border-b border-[#958da1]/20">
+                  <span className="text-sm text-[#ff5f56]">Error</span>
+                  <p className="mt-1 text-sm text-[#ccc3d8]">{data.document.processingError}</p>
+                </div>
+              )}
               <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
                 <span className="text-sm text-[#ccc3d8]">File Type</span>
                 <span className="text-sm font-medium text-[#e1e3e4]">{data.document.fileType}</span>

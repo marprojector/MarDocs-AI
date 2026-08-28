@@ -109,13 +109,11 @@ export async function DELETE(
     }
 
     try {
-      // Delete the file from Vercel Blob
       if (document.fileUrl) {
         await del(document.fileUrl);
       }
     } catch (blobError) {
       console.error('[BLOB_DELETE]', blobError);
-      // Continue with database deletion even if blob deletion fails
     }
 
     await prisma.document.delete({

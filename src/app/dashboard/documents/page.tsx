@@ -28,6 +28,53 @@ export default function DocumentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [fileTypeFilter, setFileTypeFilter] = useState<string>('all');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+
+    const MAX_SIZE = 50 * 1024 * 1024;
+
+    if (!['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'].includes(file.type)) {
+      setUploadError('Invalid file type. Only PDF, DOCX, and TXT files are allowed.');
+      return;
+    }
+
+    if (file.size > MAX_SIZE) {
+      setUploadError('File size exceeds 50MB limit.');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name.replace(/\.[^/.]+$/, ''));
+      formData.append('description', '');
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const uploadedDoc = await response.json();
+        setDocuments((prev) => [uploadedDoc, ...prev]);
+      } else {
+        const errorData = await response.json();
+        setUploadError(errorData.error || 'Failed to upload document');
+      }
+    } catch (err) {
+      setUploadError('Network error during upload');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -48,6 +95,22 @@ export default function DocumentsPage() {
 
     fetchDocuments();
   }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      const response = await fetch('/api/documents');
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments(data);
+      } else {
+        setError('Failed to load documents');
+      }
+    } catch (err) {
+      setError('Network error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -156,10 +219,43 @@ export default function DocumentsPage() {
 
   return (
     <>
+      {uploadError && (
+        <div className="mb-6 rounded-lg bg-[#ff5f56]/20 px-4 py-3 text-sm text-[#ff5f56]">
+          {uploadError}
+          <button
+            onClick={() => setUploadError(null)}
+            className="ml-2 font-semibold hover:text-[#ff8a8a]"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <Header
         title="Documents"
         subtitle="Your document library"
       />
+
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-semibold text-[#e1e3e4]">Documents</h1>
+          <Chip variant="default" size="sm">
+            {documents.length} {documents.length === 1 ? 'document' : 'documents'}
+          </Chip>
+        </div>
+        <Button onClick={() => document.getElementById('fileInput')?.click()}>
+          <Icon name="Upload" size={16} className="mr-2" />
+          Upload Document
+        </Button>
+        <input
+          id="fileInput"
+          type="file"
+          accept=".pdf,.docx,.txt"
+          className="hidden"
+          onChange={handleFileSelect}
+          disabled={isUploading}
+          aria-label="Select file to upload"
+        />
+      </div>
 
       {/* Search and Filter Section */}
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -203,7 +299,11 @@ export default function DocumentsPage() {
             <Icon name="DownloadCloud" size={14} className="mr-2" />
             Export
           </Button>
-          <Button size="sm" className="h-9 text-xs" onClick={() => router.push('/dashboard/documents')}>
+          <Button size="sm" className="h-9 text-xs" onClick={() => {
+            setIsLoading(true);
+            setError(null);
+            fetchDocuments();
+          }}>
             <Icon name="RefreshCw" size={14} className="mr-2" />
             Refresh
           </Button>
