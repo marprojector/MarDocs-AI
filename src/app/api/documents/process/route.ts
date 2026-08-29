@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { get } from '@vercel/blob';
+import { extractRawText } from 'mammoth';
 import { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -74,8 +75,7 @@ export async function POST(request: NextRequest) {
       extractedText = result.text;
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       // DOCX extraction using mammoth
-      const mammoth = await import('mammoth');
-      const result = await mammoth.extractRawText({ buffer: buffer });
+      const result = await extractRawText({ buffer: buffer });
       extractedText = result.value;
     } else {
       throw new Error(`Unsupported file type: ${fileType}`);
