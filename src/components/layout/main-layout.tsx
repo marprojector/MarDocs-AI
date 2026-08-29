@@ -25,19 +25,19 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
         className="w-64 flex-shrink-0 border-r border-[#958da1]/20 hidden lg:flex" 
       />
 
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - z-50 so it's always above backdrop */}
       <div className="fixed top-3 left-3 z-50 lg:hidden">
         <Button
           variant="secondary"
           size="icon"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="h-10 w-10 shadow-xl"
+          className="h-[48px] w-[48px] shadow-xl min-h-[48px] min-w-[48px]"
         >
-          <Icon name={isMobileMenuOpen ? 'X' : 'Menu'} size={20} />
+          <Icon name={isMobileMenuOpen ? 'X' : 'Menu'} size={24} />
         </Button>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay - backdrop */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -46,7 +46,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden pointer-events-auto"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div
