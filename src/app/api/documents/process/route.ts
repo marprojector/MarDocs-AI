@@ -6,8 +6,9 @@ import { NextRequest } from 'next/server';
 
 // Configure pdfjs-dist for Node.js environment
 import * as pdfjs from 'pdfjs-dist';
+// Set worker src to use the built-in worker that comes with pdfjs-dist
 if (typeof pdfjs.GlobalWorkerOptions !== 'undefined') {
-  pdfjs.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.mjs';
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString();
 }
 
 export async function POST(request: NextRequest) {
