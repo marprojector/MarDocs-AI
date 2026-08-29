@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Header } from '@/components/layout/header';
@@ -36,6 +36,12 @@ interface DocumentData {
   editedDescription: string;
 }
 
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -49,11 +55,19 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     editedDescription: '',
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [documentId, setDocumentId] = useState<string>('');
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchDocument = async () => {
       try {
         const { id } = await params;
+        setDocumentId(id);
         const response = await fetch(`/api/documents/${id}`, {
           credentials: 'include',
         });
@@ -262,6 +276,84 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages, streamingContent]);
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isStreaming || !documentId) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: inputMessage,
+    };
+
+    setChatMessages((prev) => [...prev, userMessage]);
+    setInputMessage('');
+    setIsStreaming(true);
+    setStreamingContent('');
+
+    try {
+      const response = await fetch(`/api/documents/${documentId}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputMessage,
+          conversationId: conversationId,
+        }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Chat request failed');
+      }
+
+      const conversationIdHeader = response.headers.get('X-Conversation-Id');
+      if (conversationIdHeader && !conversationId) {
+        setConversationId(conversationIdHeader);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          accumulatedContent += chunk;
+          setStreamingContent(accumulatedContent);
+        }
+
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: accumulatedContent,
+        };
+
+        setChatMessages((prev) => [...prev, assistantMessage]);
+        setStreamingContent('');
+      }
+    } catch (error) {
+      console.error('[CHAT_ERROR]', error);
+      setData((prev) => ({
+        ...prev,
+        error: 'Failed to send message. Please try again.',
+      }));
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
   if (data.isLoading) {
     return (
       <>
@@ -321,6 +413,122 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Document Viewer Area */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Chat Interface - Only show if document is completed */}
+          {data.document.status === 'COMPLETED' && data.document.extractedText && (
+            <Card className="bg-[#0c0f10] border-[#958da1]/20">
+              <CardHeader className="border-b border-[#958da1]/20 bg-[#1d2021]/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-[#e1e3e4]">Chat with Document</CardTitle>
+                    <CardDescription className="text-[#ccc3d8]">
+                      Ask questions about your document
+                    </CardDescription>
+                  </div>
+                  <Icon name="MessageSquare" size={20} className="text-[#7c3aed]" />
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Messages Container */}
+                <div className="h-[400px] overflow-y-auto bg-[#050505] p-4 space-y-4">
+                  {chatMessages.length === 0 && !streamingContent && (
+                    <div className="flex h-full items-center justify-center text-center">
+                      <div className="max-w-md space-y-3">
+                        <div className="flex justify-center">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7c3aed]/20 text-[#7c3aed]">
+                            <Icon name="MessageSquare" size={32} />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-semibold text-[#e1e3e4]">Start a conversation</h3>
+                        <p className="text-sm text-[#ccc3d8]">
+                          Ask questions about the document content and get AI-powered answers.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                          msg.role === 'user'
+                            ? 'bg-[#7c3aed] text-white'
+                            : 'bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {msg.role === 'assistant' && (
+                            <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
+                          )}
+                          <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {streamingContent && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg px-4 py-3 bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20">
+                        <div className="flex items-start gap-2">
+                          <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
+                          <p className="text-sm whitespace-pre-wrap break-words">{streamingContent}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isStreaming && !streamingContent && (
+                    <div className="flex justify-start">
+                      <div className="rounded-lg px-4 py-3 bg-[#1d2021] border border-[#958da1]/20">
+                        <div className="flex items-center gap-2">
+                          <Icon name="Loader2" size={16} className="animate-spin text-[#7c3aed]" />
+                          <span className="text-sm text-[#ccc3d8]">Thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input Area */}
+                <div className="border-t border-[#958da1]/20 bg-[#1d2021]/30 p-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Ask a question about the document..."
+                      className="flex-1 bg-[#0c0f10] border-[#958da1]/30 text-[#e1e3e4]"
+                      disabled={isStreaming}
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!inputMessage.trim() || isStreaming}
+                      className="px-4"
+                    >
+                      {isStreaming ? (
+                        <Icon name="Loader2" size={18} className="animate-spin" />
+                      ) : (
+                        <Icon name="Send" size={18} />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="mt-2 text-xs text-[#ccc3d8]">
+                    Press Enter to send, Shift+Enter for new line
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* File Preview Section */}
           <Card className="bg-[#0c0f10] border-[#958da1]/20 flex flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-[#958da1]/20 bg-[#1d2021] px-6 py-4">
