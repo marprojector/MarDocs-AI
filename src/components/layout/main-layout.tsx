@@ -22,16 +22,16 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       {/* Desktop Sidebar */}
       <SidebarNavigation 
         user={user} 
-        className="w-64 flex-shrink-0 border-r border-[#958da1]/20 hidden md:flex" 
+        className="w-64 flex-shrink-0 border-r border-[#958da1]/20 hidden lg:flex" 
       />
 
       {/* Mobile Menu Button */}
-      <div className="fixed top-4 left-4 z-50 md:hidden">
+      <div className="fixed top-3 left-3 z-50 lg:hidden">
         <Button
           variant="secondary"
           size="icon"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="h-10 w-10 shadow-lg"
+          className="h-10 w-10 shadow-xl"
         >
           <Icon name={isMobileMenuOpen ? 'X' : 'Menu'} size={20} />
         </Button>
@@ -46,7 +46,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 z-40 md:hidden"
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <motion.div
@@ -54,7 +54,7 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 w-64 bg-[#111415] border-r border-[#958da1]/20 z-50 md:hidden"
+              className="fixed inset-y-0 left-0 w-[280px] max-w-[80vw] bg-[#111415] border-r border-[#958da1]/20 z-50 lg:hidden overflow-y-auto"
             >
               <SidebarNavigation 
                 user={user} 
@@ -67,8 +67,8 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <main className="flex-1 overflow-y-auto px-3 py-16 sm:px-4 sm:py-6 lg:p-8">
           <div className="mx-auto max-w-7xl w-full">
             {children}
           </div>

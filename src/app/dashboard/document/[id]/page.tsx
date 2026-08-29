@@ -466,15 +466,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className="mb-4 sm:mb-6 rounded-lg bg-[#d2bbff]/20 px-4 py-3 text-sm text-[#d2bbff]"
+          className="mb-3 sm:mb-4 lg:mb-6 rounded-lg bg-[#d2bbff]/20 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[#d2bbff]"
         >
           {data.successMessage}
         </motion.div>
       )}
 
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
-        {/* Document Viewer Area */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-3 sm:gap-4 lg:grid lg:grid-cols-3 lg:gap-6">
+        {/* Main Content Area */}
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6 min-w-0">
           {/* Chat Interface - Only show if document is completed */}
           {data.document.status === 'COMPLETED' && data.document.extractedText && (
             <motion.div
@@ -525,20 +525,20 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.2 }}
-                          className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                          className={`flex flex-col w-full ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                         >
                           <div
-                            className={`max-w-[85%] sm:max-w-[80%] rounded-lg px-3 sm:px-4 py-2 sm:py-3 ${
+                            className={`max-w-[90%] sm:max-w-[85%] lg:max-w-[80%] rounded-lg px-2.5 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 ${
                               msg.role === 'user'
                                 ? 'bg-[#7c3aed] text-white'
                                 : 'bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20'
                             }`}
                           >
-                            <div className="flex items-start gap-2">
+                            <div className="flex items-start gap-1.5 sm:gap-2 min-w-0">
                               {msg.role === 'assistant' && (
-                                <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
+                                <Icon name="Bot" size={14} className="mt-0.5 sm:mt-1 flex-shrink-0 text-[#7c3aed]" />
                               )}
-                              <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                              <p className="text-xs sm:text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap min-w-0">{msg.content}</p>
                             </div>
                           </div>
 
@@ -548,33 +548,33 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               transition={{ delay: 0.2 }}
-                              className="mt-2 max-w-[85%] sm:max-w-[80%] space-y-2"
+                              className="mt-1.5 sm:mt-2 w-full max-w-[90%] sm:max-w-[85%] lg:max-w-[80%] space-y-1.5 sm:space-y-2"
                             >
                               {msg.citations.map((citation) => (
                                 <motion.div
                                   key={citation.id}
                                   initial={{ opacity: 0, x: -10 }}
                                   animate={{ opacity: 1, x: 0 }}
-                                  className="rounded-lg border border-[#958da1]/20 bg-[#0c0f10] p-2 sm:p-3 text-xs"
+                                  className="rounded-lg border border-[#958da1]/20 bg-[#0c0f10] p-2 sm:p-2.5 lg:p-3 text-xs w-full overflow-hidden"
                                 >
-                                  <div className="flex items-start gap-2">
-                                    <Icon name="FileText" size={14} className="mt-0.5 flex-shrink-0 text-[#7c3aed]" />
-                                    <div className="flex-1 space-y-1 min-w-0">
-                                      <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-medium text-[#e1e3e4] break-words">
+                                  <div className="flex items-start gap-1.5 sm:gap-2 min-w-0">
+                                    <Icon name="FileText" size={12} className="mt-0.5 flex-shrink-0 text-[#7c3aed]" />
+                                    <div className="flex-1 space-y-1 min-w-0 overflow-hidden">
+                                      <div className="flex items-start gap-1.5 flex-wrap min-w-0">
+                                        <span className="font-medium text-[#e1e3e4] break-words min-w-0 flex-1">
                                           {citation.document.title}
                                         </span>
                                         {citation.pageNumber && (
-                                          <span className="text-[#ccc3d8] whitespace-nowrap">• Page {citation.pageNumber}</span>
+                                          <span className="text-[#ccc3d8] whitespace-nowrap flex-shrink-0 text-xs">• Page {citation.pageNumber}</span>
                                         )}
                                       </div>
                                       {citation.sectionTitle && (
-                                        <div className="text-[#ccc3d8] break-words">
+                                        <div className="text-[#ccc3d8] break-words overflow-hidden">
                                           Section: {citation.sectionTitle}
                                         </div>
                                       )}
                                       {citation.contentPreview && (
-                                        <div className="mt-2 rounded bg-[#1d2021] p-2 text-[#ccc3d8] break-words">
+                                        <div className="mt-1.5 rounded bg-[#1d2021] p-1.5 sm:p-2 text-[#ccc3d8] break-words overflow-hidden">
                                           {citation.contentPreview}
                                         </div>
                                       )}
@@ -622,7 +622,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 {/* Input Area */}
-                <div className="border-t border-[#958da1]/20 bg-[#1d2021]/30 p-3 sm:p-4">
+                <div className="border-t border-[#958da1]/20 bg-[#1d2021]/30 p-2.5 sm:p-3 lg:p-4">
                   <div className="flex gap-2">
                     <Input
                       value={inputMessage}
@@ -633,14 +633,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Ask a question about the document..."
-                      className="flex-1 bg-[#0c0f10] border-[#958da1]/30 text-[#e1e3e4] text-sm"
+                      placeholder="Ask a question..."
+                      className="flex-1 bg-[#0c0f10] border-[#958da1]/30 text-[#e1e3e4] text-sm h-10 min-w-0"
                       disabled={isStreaming}
                     />
                     <Button
                       onClick={handleSendMessage}
                       disabled={!inputMessage.trim() || isStreaming}
-                      className="px-3 sm:px-4 flex-shrink-0"
+                      className="px-3 flex-shrink-0 h-10 w-10 sm:w-auto sm:px-4"
                       size="default"
                     >
                       {isStreaming ? (
@@ -650,7 +650,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       )}
                     </Button>
                   </div>
-                  <p className="mt-2 text-xs text-[#ccc3d8] hidden sm:block">
+                  <p className="mt-1.5 text-xs text-[#ccc3d8] hidden sm:block">
                     Press Enter to send, Shift+Enter for new line
                   </p>
                 </div>
@@ -665,13 +665,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="bg-[#0c0f10] border-[#958da1]/20 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#958da1]/20 bg-[#1d2021] px-4 sm:px-6 py-3 sm:py-4">
-              <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded bg-[#7c3aed]/20 text-[#d2bbff]">
-                  <Icon name="FileText" size={16} className="sm:w-5 sm:h-5" />
+            <Card className="bg-[#0c0f10] border-[#958da1]/20 flex flex-col overflow-hidden w-full">
+            <div className="flex items-center justify-between border-b border-[#958da1]/20 bg-[#1d2021] px-3 py-2.5 sm:px-4 sm:py-3 lg:px-6 lg:py-4 gap-2">
+              <div className="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 flex-shrink-0 items-center justify-center rounded bg-[#7c3aed]/20 text-[#d2bbff]">
+                  <Icon name="FileText" size={16} className="sm:w-[18px] sm:h-[18px] lg:w-5 lg:h-5" />
                 </div>
-                <div className="flex flex-col overflow-hidden min-w-0">
+                <div className="flex flex-col overflow-hidden min-w-0 flex-1">
                   <span className="truncate text-xs sm:text-sm font-medium text-[#e1e3e4]">
                     {data.document.title}
                   </span>
@@ -680,18 +680,18 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Chip variant="default" size="sm" className="hidden sm:flex">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                <Chip variant="default" size="sm" className="hidden sm:flex text-xs">
                   {data.document.fileType.replace('application/', '').replace('text/', '').toUpperCase() || 'FILE'}
                 </Chip>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#ccc3d8] hover:text-[#e1e3e4] hidden sm:flex">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#ccc3d8] hover:text-[#e1e3e4] hidden lg:flex">
                   <Icon name="Maximize2" size={16} />
                 </Button>
               </div>
             </div>
 
             {/* Document Content */}
-            <div className="flex-1 overflow-y-auto bg-[#050505] p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto bg-[#050505] p-3 sm:p-4 lg:p-6">
               {isPDF ? (
                 <div className="flex h-full min-h-[500px] items-center justify-center bg-[#1d2021]/50 rounded-lg">
                   <object
@@ -780,42 +780,41 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-wrap gap-2 sm:gap-3"
+            className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2"
           >
-            <Button onClick={handleOpenFile} size="sm" className="flex-1 sm:flex-none">
-              <Icon name="ExternalLink" size={16} className="mr-2" />
-              <span className="hidden sm:inline">Open File</span>
-              <span className="sm:hidden">Open</span>
+            <Button onClick={handleOpenFile} size="sm" className="text-xs sm:text-sm">
+              <Icon name="ExternalLink" size={14} className="mr-1.5 sm:mr-2" />
+              <span>Open</span>
             </Button>
-            <Button variant="outline" onClick={handleDownload} size="sm" className="flex-1 sm:flex-none">
-              <Icon name="DownloadCloud" size={16} className="mr-2" />
+            <Button variant="outline" onClick={handleDownload} size="sm" className="text-xs sm:text-sm">
+              <Icon name="DownloadCloud" size={14} className="mr-1.5 sm:mr-2" />
               Download
             </Button>
             {data.document.status === 'PENDING' && (
-              <Button onClick={handleProcessDocument} disabled={isProcessing} size="sm" className="flex-1 sm:flex-none">
+              <Button onClick={handleProcessDocument} disabled={isProcessing} size="sm" className="col-span-2 sm:col-span-1 text-xs sm:text-sm">
                 {isProcessing ? (
                   <>
-                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    <Icon name="Loader2" size={14} className="mr-1.5 sm:mr-2 animate-spin" />
                     Processing...
                   </>
                 ) : (
                   <>
-                    <Icon name="FileText" size={16} className="mr-2" />
+                    <Icon name="FileText" size={14} className="mr-1.5 sm:mr-2" />
                     Process
                   </>
                 )}
               </Button>
             )}
             {data.document.status === 'FAILED' && (
-              <Button variant="outline" onClick={handleProcessDocument} disabled={isProcessing} size="sm" className="flex-1 sm:flex-none">
+              <Button variant="outline" onClick={handleProcessDocument} disabled={isProcessing} size="sm" className="col-span-2 sm:col-span-1 text-xs sm:text-sm">
                 {isProcessing ? (
                   <>
-                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    <Icon name="Loader2" size={14} className="mr-1.5 sm:mr-2 animate-spin" />
                     Retrying...
                   </>
                 ) : (
                   <>
-                    <Icon name="RefreshCw" size={16} className="mr-2" />
+                    <Icon name="RefreshCw" size={14} className="mr-1.5 sm:mr-2" />
                     Retry
                   </>
                 )}
@@ -823,22 +822,21 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             )}
             {data.isEditing ? (
               <>
-                <Button onClick={handleSave} className="bg-[#7c3aed] hover:bg-[#6d37d6] flex-1 sm:flex-none" size="sm">
-                  <span className="hidden sm:inline">Save Changes</span>
-                  <span className="sm:hidden">Save</span>
+                <Button onClick={handleSave} className="bg-[#7c3aed] hover:bg-[#6d37d6] text-xs sm:text-sm" size="sm">
+                  Save
                 </Button>
-                <Button variant="outline" onClick={handleCancel} size="sm" className="flex-1 sm:flex-none">
+                <Button variant="outline" onClick={handleCancel} size="sm" className="text-xs sm:text-sm">
                   Cancel
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={handleEdit} size="sm" className="flex-1 sm:flex-none">
-                  <Icon name="Edit" size={16} className="mr-2" />
+                <Button variant="outline" onClick={handleEdit} size="sm" className="text-xs sm:text-sm">
+                  <Icon name="Edit" size={14} className="mr-1.5 sm:mr-2" />
                   Edit
                 </Button>
-                <Button variant="outline" className="text-[#ff5f56] hover:bg-[#ff5f56]/10 hover:text-[#ff5f56] flex-1 sm:flex-none" onClick={handleDelete} size="sm">
-                  <Icon name="Trash2" size={16} className="mr-2" />
+                <Button variant="outline" className="text-[#ff5f56] hover:bg-[#ff5f56]/10 hover:text-[#ff5f56] text-xs sm:text-sm" onClick={handleDelete} size="sm">
+                  <Icon name="Trash2" size={14} className="mr-1.5 sm:mr-2" />
                   Delete
                 </Button>
               </>
@@ -851,7 +849,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="space-y-4 sm:space-y-6"
+          className="space-y-3 sm:space-y-4 lg:space-y-6 min-w-0"
         >
           {/* Status Card */}
           <motion.div
@@ -859,14 +857,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg text-[#e1e3e4]">Status</CardTitle>
-                <CardDescription className="text-xs sm:text-sm text-[#ccc3d8]">Processing status</CardDescription>
+            <Card className="bg-[#1d2021]/50 border-[#958da1]/20 w-full overflow-hidden">
+              <CardHeader className="p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-sm sm:text-base text-[#e1e3e4]">Status</CardTitle>
+                <CardDescription className="text-xs text-[#ccc3d8]">Processing status</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
-                <span className="text-sm text-[#ccc3d8]">Status</span>
+              <CardContent className="space-y-2.5 sm:space-y-3 p-3 sm:p-4 lg:p-6 pt-0">
+              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20 gap-2 min-w-0">
+                <span className="text-xs sm:text-sm text-[#ccc3d8] flex-shrink-0">Status</span>
                 <Chip
                   variant={
                     data.document.status === 'COMPLETED'
@@ -881,28 +879,28 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </Chip>
               </div>
               {data.document.processedAt && (
-                <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
-                  <span className="text-sm text-[#ccc3d8]">Processed</span>
-                  <span className="text-sm text-[#ccc3d8]">{formatDate(data.document.processedAt)}</span>
+                <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20 gap-2">
+                  <span className="text-xs sm:text-sm text-[#ccc3d8] flex-shrink-0">Processed</span>
+                  <span className="text-xs sm:text-sm text-[#ccc3d8] truncate">{formatDate(data.document.processedAt)}</span>
                 </div>
               )}
               {data.document.processingError && (
                 <div className="py-2 border-b border-[#958da1]/20">
-                  <span className="text-sm text-[#ff5f56]">Error</span>
-                  <p className="mt-1 text-sm text-[#ccc3d8]">{data.document.processingError}</p>
+                  <span className="text-xs sm:text-sm text-[#ff5f56]">Error</span>
+                  <p className="mt-1 text-xs sm:text-sm text-[#ccc3d8] break-words">{data.document.processingError}</p>
                 </div>
               )}
-              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
-                <span className="text-sm text-[#ccc3d8]">File Type</span>
-                <span className="text-sm font-medium text-[#e1e3e4]">{data.document.fileType}</span>
+              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20 gap-2">
+                <span className="text-xs sm:text-sm text-[#ccc3d8] flex-shrink-0">File Type</span>
+                <span className="text-xs sm:text-sm font-medium text-[#e1e3e4] truncate">{data.document.fileType}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
-                <span className="text-sm text-[#ccc3d8]">File Size</span>
-                <span className="text-sm font-medium text-[#e1e3e4]">{formatFileSize(data.document.fileSize)}</span>
+              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20 gap-2">
+                <span className="text-xs sm:text-sm text-[#ccc3d8] flex-shrink-0">File Size</span>
+                <span className="text-xs sm:text-sm font-medium text-[#e1e3e4]">{formatFileSize(data.document.fileSize)}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
-                <span className="text-sm text-[#ccc3d8]">Original Name</span>
-                <span className="text-sm font-medium text-[#e1e3e4] truncate max-w-[150px]" title={data.document.fileName}>
+              <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20 gap-2 min-w-0">
+                <span className="text-xs sm:text-sm text-[#ccc3d8] flex-shrink-0">Original Name</span>
+                <span className="text-xs sm:text-sm font-medium text-[#e1e3e4] truncate min-w-0" title={data.document.fileName}>
                   {data.document.fileName}
                 </span>
               </div>
@@ -916,10 +914,10 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg text-[#e1e3e4]">Metadata</CardTitle>
-                <CardDescription className="text-xs sm:text-sm text-[#ccc3d8]">Document information</CardDescription>
+            <Card className="bg-[#1d2021]/50 border-[#958da1]/20 w-full overflow-hidden">
+              <CardHeader className="p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-sm sm:text-base text-[#e1e3e4]">Metadata</CardTitle>
+                <CardDescription className="text-xs text-[#ccc3d8]">Document information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               {data.isEditing ? (

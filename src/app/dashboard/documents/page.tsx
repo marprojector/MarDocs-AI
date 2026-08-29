@@ -253,24 +253,29 @@ export default function DocumentsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="mb-4 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl sm:text-2xl font-semibold text-[#e1e3e4]">All Documents</h2>
-          <Chip variant="default" size="sm">
-            {documents.length} {documents.length === 1 ? 'document' : 'documents'}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#e1e3e4] truncate">All Documents</h2>
+          <Chip variant="default" size="sm" className="flex-shrink-0">
+            {documents.length}
           </Chip>
         </div>
-        <Button onClick={() => document.getElementById('fileInput')?.click()} disabled={isUploading}>
+        <Button 
+          onClick={() => document.getElementById('fileInput')?.click()} 
+          disabled={isUploading}
+          className="w-full sm:w-auto flex-shrink-0"
+          size="default"
+        >
           {isUploading ? (
             <>
               <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-              Uploading...
+              <span className="truncate">Uploading...</span>
             </>
           ) : (
             <>
               <Icon name="Upload" size={16} className="mr-2" />
-              Upload Document
+              <span>Upload</span>
             </>
           )}
         </Button>
@@ -290,10 +295,10 @@ export default function DocumentsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="mb-6 sm:mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+        className="mb-4 sm:mb-6 lg:mb-8 flex flex-col gap-3"
       >
-        <div className="relative w-full md:max-w-md">
-          <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ccc3d8]" />
+        <div className="relative w-full">
+          <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#ccc3d8] pointer-events-none" />
           <input
             type="text"
             placeholder="Search documents..."
@@ -305,17 +310,18 @@ export default function DocumentsPage() {
             <button
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[#ccc3d8] hover:text-[#e1e3e4] transition-colors"
+              aria-label="Clear search"
             >
               <Icon name="X" size={16} />
             </button>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <div className="relative">
+          <div className="relative flex-1 min-w-[140px]">
             <select
               value={fileTypeFilter}
               onChange={(e) => setFileTypeFilter(e.target.value)}
-              className="appearance-none rounded-lg border border-[#958da1]/30 bg-[#0c0f10] pl-3 pr-8 py-2.5 text-sm text-[#e1e3e4] focus:border-[#7c3aed]/50 focus:outline-none focus:ring-1 focus:ring-[#7c3aed]/50 transition-colors"
+              className="w-full appearance-none rounded-lg border border-[#958da1]/30 bg-[#0c0f10] pl-3 pr-8 py-2.5 text-sm text-[#e1e3e4] focus:border-[#7c3aed]/50 focus:outline-none focus:ring-1 focus:ring-[#7c3aed]/50 transition-colors"
             >
               <option value="all">All Types</option>
               <option value="pdf">PDF</option>
@@ -328,16 +334,16 @@ export default function DocumentsPage() {
               className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#ccc3d8]"
             />
           </div>
-          <Button variant="outline" size="sm" className="h-9 text-xs">
-            <Icon name="DownloadCloud" size={14} className="mr-2" />
+          <Button variant="outline" size="sm" className="h-10 px-3">
+            <Icon name="DownloadCloud" size={14} className="sm:mr-2" />
             <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button size="sm" className="h-9 text-xs" onClick={() => {
+          <Button size="sm" className="h-10 px-3" onClick={() => {
             setIsLoading(true);
             setError(null);
             fetchDocuments();
           }}>
-            <Icon name="RefreshCw" size={14} className="mr-2" />
+            <Icon name="RefreshCw" size={14} className="sm:mr-2" />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
@@ -349,7 +355,7 @@ export default function DocumentsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
           {filteredDocuments.map((doc, index) => (
             <motion.div
@@ -358,32 +364,33 @@ export default function DocumentsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + index * 0.05, duration: 0.3 }}
               whileHover={{ y: -4 }}
+              className="w-full"
             >
               <Card
-                className="bg-[#1d2021]/50 border-[#958da1]/20 hover:border-[#7c3aed]/30 transition-all duration-200 cursor-pointer hover:shadow-lg hover:shadow-[#7c3aed]/5 h-full"
+                className="bg-[#1d2021]/50 border-[#958da1]/20 hover:border-[#7c3aed]/30 transition-all duration-200 cursor-pointer hover:shadow-lg hover:shadow-[#7c3aed]/5 h-full w-full"
                 onClick={() => handleDocumentClick(doc.id)}
               >
-                <CardContent className="p-4 sm:p-5">
-                  <div className="mb-3 flex items-start justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#7c3aed]/20 text-[#d2bbff]">
+                <CardContent className="p-4">
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#7c3aed]/20 text-[#d2bbff]">
                       <Icon name="FileText" size={20} />
                     </div>
-                    <Chip variant="default" size="sm">
-                      {doc.fileType.replace('application/', '').replace('text/', '').toUpperCase() || 'FILE'}
+                    <Chip variant="default" size="sm" className="flex-shrink-0">
+                      {doc.fileType.replace('application/', '').replace('text/', '').toUpperCase().slice(0, 4) || 'FILE'}
                     </Chip>
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="font-medium text-[#e1e3e4] truncate text-sm sm:text-base" title={doc.title}>
+                  <div className="space-y-2 min-w-0">
+                    <h3 className="font-medium text-[#e1e3e4] text-sm line-clamp-2 break-words" title={doc.title}>
                       {doc.title}
                     </h3>
                     {doc.description && (
-                      <p className="text-xs sm:text-sm text-[#ccc3d8] line-clamp-2" title={doc.description}>
+                      <p className="text-xs text-[#ccc3d8] line-clamp-2 break-words" title={doc.description}>
                         {doc.description}
                       </p>
                     )}
-                    <div className="pt-3 flex items-center justify-between text-xs text-[#ccc3d8]">
-                      <span>{formatDate(doc.createdAt)}</span>
-                      <span>{formatFileSize(doc.fileSize)}</span>
+                    <div className="pt-2 flex items-center justify-between text-xs text-[#ccc3d8] gap-2">
+                      <span className="truncate">{formatDate(doc.createdAt)}</span>
+                      <span className="flex-shrink-0">{formatFileSize(doc.fileSize)}</span>
                     </div>
                   </div>
                 </CardContent>
