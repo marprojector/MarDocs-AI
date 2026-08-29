@@ -73,9 +73,10 @@ export async function POST(request: NextRequest) {
       const result = await pdf.getText();
       extractedText = result.text;
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      // DOCX extraction
-      const result = await (await import('docx-extractor')).extractText(buffer);
-      extractedText = result.join('\n\n');
+      // DOCX extraction using mammoth
+      const mammoth = await import('mammoth');
+      const result = await mammoth.extractRawText({ buffer: buffer });
+      extractedText = result.value;
     } else {
       throw new Error(`Unsupported file type: ${fileType}`);
     }
@@ -91,6 +92,9 @@ export async function POST(request: NextRequest) {
 
     return Response.json({ message: 'Processing completed', status: 'COMPLETED' });
   } catch (error) {
+    // Log the full error for debugging
+    console.error('[DOCX_PROCESSING_ERROR]', error);
+    
     await prisma.document.update({
       where: { id },
       data: {
