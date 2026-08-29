@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Chip } from '@/components/ui/chip';
@@ -406,12 +407,16 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     return (
       <>
         <Header title="Document" subtitle="Loading..." />
-        <div className="flex items-center justify-center py-20">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center py-20"
+        >
           <div className="flex flex-col items-center gap-4">
             <Icon name="Loader2" size={32} className="animate-spin text-[#7c3aed]" />
             <p className="text-[#ccc3d8]">Loading document...</p>
           </div>
-        </div>
+        </motion.div>
       </>
     );
   }
@@ -420,10 +425,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     return (
       <>
         <Header title="Document" subtitle="Error" />
-        <div className="flex items-center justify-center py-20">
-          <Card className="max-w-md">
-            <CardContent className="p-8 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#ff5f56]/20 text-[#ff5f56]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex items-center justify-center py-20 px-4"
+        >
+          <Card className="max-w-md w-full">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#ff5f56]/20 text-[#ff5f56] mx-auto">
                 <Icon name="AlertCircle" size={32} />
               </div>
               <h3 className="mb-2 text-xl font-semibold text-[#e1e3e4]">Error loading document</h3>
@@ -433,7 +442,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       </>
     );
   }
@@ -453,132 +462,167 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       />
 
       {data.successMessage && (
-        <div className="mb-6 rounded-lg bg-[#d2bbff]/20 px-4 py-3 text-sm text-[#d2bbff]">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="mb-4 sm:mb-6 rounded-lg bg-[#d2bbff]/20 px-4 py-3 text-sm text-[#d2bbff]"
+        >
           {data.successMessage}
-        </div>
+        </motion.div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
         {/* Document Viewer Area */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Chat Interface - Only show if document is completed */}
           {data.document.status === 'COMPLETED' && data.document.extractedText && (
-            <Card className="bg-[#0c0f10] border-[#958da1]/20">
-              <CardHeader className="border-b border-[#958da1]/20 bg-[#1d2021]/50">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-[#e1e3e4]">Chat with Document</CardTitle>
-                    <CardDescription className="text-[#ccc3d8]">
-                      Ask questions about your document
-                    </CardDescription>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="bg-[#0c0f10] border-[#958da1]/20">
+                <CardHeader className="border-b border-[#958da1]/20 bg-[#1d2021]/50 p-4 sm:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base sm:text-lg text-[#e1e3e4]">Chat with Document</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm text-[#ccc3d8]">
+                        Ask questions about your document
+                      </CardDescription>
+                    </div>
+                    <Icon name="MessageSquare" size={20} className="text-[#7c3aed] flex-shrink-0" />
                   </div>
-                  <Icon name="MessageSquare" size={20} className="text-[#7c3aed]" />
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                {/* Messages Container */}
-                <div className="h-[400px] overflow-y-auto bg-[#050505] p-4 space-y-4">
-                  {chatMessages.length === 0 && !streamingContent && (
-                    <div className="flex h-full items-center justify-center text-center">
-                      <div className="max-w-md space-y-3">
-                        <div className="flex justify-center">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7c3aed]/20 text-[#7c3aed]">
-                            <Icon name="MessageSquare" size={32} />
+                </CardHeader>
+                <CardContent className="p-0">
+                  {/* Messages Container */}
+                  <div className="h-[400px] sm:h-[500px] overflow-y-auto bg-[#050505] p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    {chatMessages.length === 0 && !streamingContent && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex h-full items-center justify-center text-center px-4"
+                      >
+                        <div className="max-w-md space-y-3">
+                          <div className="flex justify-center">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#7c3aed]/20 text-[#7c3aed]">
+                              <Icon name="MessageSquare" size={32} />
+                            </div>
+                          </div>
+                          <h3 className="text-base sm:text-lg font-semibold text-[#e1e3e4]">Start a conversation</h3>
+                          <p className="text-xs sm:text-sm text-[#ccc3d8]">
+                            Ask questions about the document content and get AI-powered answers.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    <AnimatePresence mode="popLayout">
+                      {chatMessages.map((msg, index) => (
+                        <motion.div
+                          key={msg.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                        >
+                          <div
+                            className={`max-w-[85%] sm:max-w-[80%] rounded-lg px-3 sm:px-4 py-2 sm:py-3 ${
+                              msg.role === 'user'
+                                ? 'bg-[#7c3aed] text-white'
+                                : 'bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20'
+                            }`}
+                          >
+                            <div className="flex items-start gap-2">
+                              {msg.role === 'assistant' && (
+                                <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
+                              )}
+                              <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                            </div>
+                          </div>
+
+                          {/* Citations */}
+                          {msg.role === 'assistant' && msg.citations && msg.citations.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              transition={{ delay: 0.2 }}
+                              className="mt-2 max-w-[85%] sm:max-w-[80%] space-y-2"
+                            >
+                              {msg.citations.map((citation) => (
+                                <motion.div
+                                  key={citation.id}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  className="rounded-lg border border-[#958da1]/20 bg-[#0c0f10] p-2 sm:p-3 text-xs"
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <Icon name="FileText" size={14} className="mt-0.5 flex-shrink-0 text-[#7c3aed]" />
+                                    <div className="flex-1 space-y-1 min-w-0">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-medium text-[#e1e3e4] break-words">
+                                          {citation.document.title}
+                                        </span>
+                                        {citation.pageNumber && (
+                                          <span className="text-[#ccc3d8] whitespace-nowrap">• Page {citation.pageNumber}</span>
+                                        )}
+                                      </div>
+                                      {citation.sectionTitle && (
+                                        <div className="text-[#ccc3d8] break-words">
+                                          Section: {citation.sectionTitle}
+                                        </div>
+                                      )}
+                                      {citation.contentPreview && (
+                                        <div className="mt-2 rounded bg-[#1d2021] p-2 text-[#ccc3d8] break-words">
+                                          {citation.contentPreview}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+
+                    {streamingContent && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-start"
+                      >
+                        <div className="max-w-[85%] sm:max-w-[80%] rounded-lg px-3 sm:px-4 py-2 sm:py-3 bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20">
+                          <div className="flex items-start gap-2">
+                            <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
+                            <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{streamingContent}</p>
                           </div>
                         </div>
-                        <h3 className="text-lg font-semibold text-[#e1e3e4]">Start a conversation</h3>
-                        <p className="text-sm text-[#ccc3d8]">
-                          Ask questions about the document content and get AI-powered answers.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-                    >
-                      <div
-                        className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                          msg.role === 'user'
-                            ? 'bg-[#7c3aed] text-white'
-                            : 'bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20'
-                        }`}
+                      </motion.div>
+                    )}
+
+                    {isStreaming && !streamingContent && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex justify-start"
                       >
-                        <div className="flex items-start gap-2">
-                          {msg.role === 'assistant' && (
-                            <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
-                          )}
-                          <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                        <div className="rounded-lg px-3 sm:px-4 py-2 sm:py-3 bg-[#1d2021] border border-[#958da1]/20">
+                          <div className="flex items-center gap-2">
+                            <Icon name="Loader2" size={16} className="animate-spin text-[#7c3aed]" />
+                            <span className="text-xs sm:text-sm text-[#ccc3d8]">Thinking...</span>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* Citations */}
-                      {msg.role === 'assistant' && msg.citations && msg.citations.length > 0 && (
-                        <div className="mt-2 max-w-[80%] space-y-2">
-                          {msg.citations.map((citation) => (
-                            <div
-                              key={citation.id}
-                              className="rounded-lg border border-[#958da1]/20 bg-[#0c0f10] p-3 text-xs"
-                            >
-                              <div className="flex items-start gap-2">
-                                <Icon name="FileText" size={14} className="mt-0.5 flex-shrink-0 text-[#7c3aed]" />
-                                <div className="flex-1 space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium text-[#e1e3e4]">
-                                      {citation.document.title}
-                                    </span>
-                                    {citation.pageNumber && (
-                                      <span className="text-[#ccc3d8]">• Page {citation.pageNumber}</span>
-                                    )}
-                                  </div>
-                                  {citation.sectionTitle && (
-                                    <div className="text-[#ccc3d8]">
-                                      Section: {citation.sectionTitle}
-                                    </div>
-                                  )}
-                                  {citation.contentPreview && (
-                                    <div className="mt-2 rounded bg-[#1d2021] p-2 text-[#ccc3d8]">
-                                      {citation.contentPreview}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {streamingContent && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[80%] rounded-lg px-4 py-3 bg-[#1d2021] text-[#e1e3e4] border border-[#958da1]/20">
-                        <div className="flex items-start gap-2">
-                          <Icon name="Bot" size={16} className="mt-1 flex-shrink-0 text-[#7c3aed]" />
-                          <p className="text-sm whitespace-pre-wrap break-words">{streamingContent}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {isStreaming && !streamingContent && (
-                    <div className="flex justify-start">
-                      <div className="rounded-lg px-4 py-3 bg-[#1d2021] border border-[#958da1]/20">
-                        <div className="flex items-center gap-2">
-                          <Icon name="Loader2" size={16} className="animate-spin text-[#7c3aed]" />
-                          <span className="text-sm text-[#ccc3d8]">Thinking...</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                      </motion.div>
+                    )}
 
                   <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input Area */}
-                <div className="border-t border-[#958da1]/20 bg-[#1d2021]/30 p-4">
+                <div className="border-t border-[#958da1]/20 bg-[#1d2021]/30 p-3 sm:p-4">
                   <div className="flex gap-2">
                     <Input
                       value={inputMessage}
@@ -590,13 +634,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         }
                       }}
                       placeholder="Ask a question about the document..."
-                      className="flex-1 bg-[#0c0f10] border-[#958da1]/30 text-[#e1e3e4]"
+                      className="flex-1 bg-[#0c0f10] border-[#958da1]/30 text-[#e1e3e4] text-sm"
                       disabled={isStreaming}
                     />
                     <Button
                       onClick={handleSendMessage}
                       disabled={!inputMessage.trim() || isStreaming}
-                      className="px-4"
+                      className="px-3 sm:px-4 flex-shrink-0"
+                      size="default"
                     >
                       {isStreaming ? (
                         <Icon name="Loader2" size={18} className="animate-spin" />
@@ -605,23 +650,29 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                       )}
                     </Button>
                   </div>
-                  <p className="mt-2 text-xs text-[#ccc3d8]">
+                  <p className="mt-2 text-xs text-[#ccc3d8] hidden sm:block">
                     Press Enter to send, Shift+Enter for new line
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
 
           {/* File Preview Section */}
-          <Card className="bg-[#0c0f10] border-[#958da1]/20 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#958da1]/20 bg-[#1d2021] px-6 py-4">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-[#7c3aed]/20 text-[#d2bbff]">
-                  <Icon name="FileText" size={20} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="bg-[#0c0f10] border-[#958da1]/20 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#958da1]/20 bg-[#1d2021] px-4 sm:px-6 py-3 sm:py-4">
+              <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
+                <div className="flex h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 items-center justify-center rounded bg-[#7c3aed]/20 text-[#d2bbff]">
+                  <Icon name="FileText" size={16} className="sm:w-5 sm:h-5" />
                 </div>
-                <div className="flex flex-col overflow-hidden">
-                  <span className="truncate text-sm font-medium text-[#e1e3e4]">
+                <div className="flex flex-col overflow-hidden min-w-0">
+                  <span className="truncate text-xs sm:text-sm font-medium text-[#e1e3e4]">
                     {data.document.title}
                   </span>
                   <span className="truncate text-xs text-[#ccc3d8]">
@@ -629,18 +680,18 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Chip variant="default" size="sm">
-                  {data.document.fileType.replace('application/', '').replace('text/', '') || 'FILE'}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Chip variant="default" size="sm" className="hidden sm:flex">
+                  {data.document.fileType.replace('application/', '').replace('text/', '').toUpperCase() || 'FILE'}
                 </Chip>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#ccc3d8] hover:text-[#e1e3e4]">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#ccc3d8] hover:text-[#e1e3e4] hidden sm:flex">
                   <Icon name="Maximize2" size={16} />
                 </Button>
               </div>
             </div>
 
             {/* Document Content */}
-            <div className="flex-1 overflow-y-auto bg-[#050505] p-6">
+            <div className="flex-1 overflow-y-auto bg-[#050505] p-4 sm:p-6">
               {isPDF ? (
                 <div className="flex h-full min-h-[500px] items-center justify-center bg-[#1d2021]/50 rounded-lg">
                   <object
@@ -698,9 +749,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               )}
             </div>
           </Card>
+          </motion.div>
 
           {data.document.status === 'COMPLETED' && data.document.extractedText && (
-            <Card className="bg-[#0c0f10] border-[#958da1]/20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card className="bg-[#0c0f10] border-[#958da1]/20">
               <CardHeader className="border-b border-[#958da1]/20 bg-[#1d2021]/50">
                 <CardTitle className="text-[#e1e3e4]">Extracted Text</CardTitle>
                 <CardDescription className="text-[#ccc3d8]">
@@ -715,20 +772,27 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           )}
 
           {/* Document Actions */}
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={handleOpenFile}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-wrap gap-2 sm:gap-3"
+          >
+            <Button onClick={handleOpenFile} size="sm" className="flex-1 sm:flex-none">
               <Icon name="ExternalLink" size={16} className="mr-2" />
-              Open File
+              <span className="hidden sm:inline">Open File</span>
+              <span className="sm:hidden">Open</span>
             </Button>
-            <Button variant="outline" onClick={handleDownload}>
+            <Button variant="outline" onClick={handleDownload} size="sm" className="flex-1 sm:flex-none">
               <Icon name="DownloadCloud" size={16} className="mr-2" />
               Download
             </Button>
             {data.document.status === 'PENDING' && (
-              <Button onClick={handleProcessDocument} disabled={isProcessing}>
+              <Button onClick={handleProcessDocument} disabled={isProcessing} size="sm" className="flex-1 sm:flex-none">
                 {isProcessing ? (
                   <>
                     <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
@@ -737,13 +801,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 ) : (
                   <>
                     <Icon name="FileText" size={16} className="mr-2" />
-                    Process Document
+                    Process
                   </>
                 )}
               </Button>
             )}
             {data.document.status === 'FAILED' && (
-              <Button variant="outline" onClick={handleProcessDocument} disabled={isProcessing}>
+              <Button variant="outline" onClick={handleProcessDocument} disabled={isProcessing} size="sm" className="flex-1 sm:flex-none">
                 {isProcessing ? (
                   <>
                     <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
@@ -752,44 +816,55 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 ) : (
                   <>
                     <Icon name="RefreshCw" size={16} className="mr-2" />
-                    Retry Processing
+                    Retry
                   </>
                 )}
               </Button>
             )}
             {data.isEditing ? (
               <>
-                <Button onClick={handleSave} className="bg-[#7c3aed] hover:bg-[#6d37d6]">
-                  Save Changes
+                <Button onClick={handleSave} className="bg-[#7c3aed] hover:bg-[#6d37d6] flex-1 sm:flex-none" size="sm">
+                  <span className="hidden sm:inline">Save Changes</span>
+                  <span className="sm:hidden">Save</span>
                 </Button>
-                <Button variant="outline" onClick={handleCancel}>
+                <Button variant="outline" onClick={handleCancel} size="sm" className="flex-1 sm:flex-none">
                   Cancel
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={handleEdit}>
+                <Button variant="outline" onClick={handleEdit} size="sm" className="flex-1 sm:flex-none">
                   <Icon name="Edit" size={16} className="mr-2" />
-                  Edit Details
+                  Edit
                 </Button>
-                <Button variant="outline" className="text-[#ff5f56] hover:bg-[#ff5f56]/10 hover:text-[#ff5f56]" onClick={handleDelete}>
+                <Button variant="outline" className="text-[#ff5f56] hover:bg-[#ff5f56]/10 hover:text-[#ff5f56] flex-1 sm:flex-none" onClick={handleDelete} size="sm">
                   <Icon name="Trash2" size={16} className="mr-2" />
                   Delete
                 </Button>
               </>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Document Info Sidebar */}
-        <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-4 sm:space-y-6"
+        >
           {/* Status Card */}
-          <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
-            <CardHeader>
-              <CardTitle className="text-[#e1e3e4]">Status</CardTitle>
-              <CardDescription className="text-[#ccc3d8]">Processing status</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg text-[#e1e3e4]">Status</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-[#ccc3d8]">Processing status</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               <div className="flex items-center justify-between py-2 border-b border-[#958da1]/20">
                 <span className="text-sm text-[#ccc3d8]">Status</span>
                 <Chip
@@ -833,14 +908,20 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
           {/* Metadata Card */}
-          <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
-            <CardHeader>
-              <CardTitle className="text-[#e1e3e4]">Metadata</CardTitle>
-              <CardDescription className="text-[#ccc3d8]">Document information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg text-[#e1e3e4]">Metadata</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-[#ccc3d8]">Document information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
               {data.isEditing ? (
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -886,7 +967,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               )}
             </CardContent>
           </Card>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </>
   );

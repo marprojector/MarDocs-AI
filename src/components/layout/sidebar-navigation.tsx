@@ -21,14 +21,22 @@ const sidebarLinks = [
 export const SidebarNavigation = ({
   className,
   user,
+  onNavigate,
 }: {
   className?: string;
   user?: { name?: string | null; email?: string | null; image?: string | null };
+  onNavigate?: () => void;
 }) => {
   const pathname = usePathname();
 
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
+  };
+
+  const handleLinkClick = () => {
+    if (onNavigate) {
+      onNavigate();
+    }
   };
 
   return (
@@ -49,6 +57,7 @@ export const SidebarNavigation = ({
             <Link
               key={link.name}
               href={link.href}
+              onClick={handleLinkClick}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 isActive
@@ -72,6 +81,7 @@ export const SidebarNavigation = ({
           <Link
             key={link.name}
             href={link.href}
+            onClick={handleLinkClick}
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[#ccc3d8] hover:bg-[#1d2021] hover:text-[#e1e3e4] transition-all duration-200"
           >
             <Icon name={link.icon} size={18} />
