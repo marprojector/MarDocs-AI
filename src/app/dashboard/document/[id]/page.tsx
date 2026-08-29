@@ -40,6 +40,21 @@ interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  citations?: Citation[];
+}
+
+interface Citation {
+  id: string;
+  pageNumber: number | null;
+  sectionTitle: string | null;
+  contentPreview: string | null;
+  relevanceScore: number | null;
+  document: {
+    id: string;
+    title: string;
+    fileName: string;
+    fileType: string;
+  };
 }
 
 export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -284,6 +299,25 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     scrollToBottom();
   }, [chatMessages, streamingContent]);
 
+  const fetchCitations = async (messageId: string) => {
+    try {
+      const response = await fetch(
+        `/api/documents/${documentId}/chat/citations?messageId=${messageId}`,
+        {
+          credentials: 'include',
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.citations || [];
+      }
+    } catch (error) {
+      console.error('[FETCH_CITATIONS_ERROR]', error);
+    }
+    return [];
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isStreaming || !documentId) return;
 
@@ -334,14 +368,28 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           setStreamingContent(accumulatedContent);
         }
 
+        const assistantMessageId = (Date.now() + 1).toString();
         const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
+          id: assistantMessageId,
           role: 'assistant',
           content: accumulatedContent,
         };
 
         setChatMessages((prev) => [...prev, assistantMessage]);
         setStreamingContent('');
+
+        // Fetch citations after streaming completes
+        // Use a small delay to ensure backend has finished saving
+        setTimeout(async () => {
+          const citations = await fetchCitations(assistantMessageId);
+          if (citations.length > 0) {
+            setChatMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId ? { ...msg, citations } : msg
+              )
+            );
+          }
+        }, 500);
       }
     } catch (error) {
       console.error('[CHAT_ERROR]', error);
@@ -449,7 +497,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   {chatMessages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
                     >
                       <div
                         className={`max-w-[80%] rounded-lg px-4 py-3 ${
@@ -465,6 +513,42 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                         </div>
                       </div>
+
+                      {/* Citations */}
+                      {msg.role === 'assistant' && msg.citations && msg.citations.length > 0 && (
+                        <div className="mt-2 max-w-[80%] space-y-2">
+                          {msg.citations.map((citation) => (
+                            <div
+                              key={citation.id}
+                              className="rounded-lg border border-[#958da1]/20 bg-[#0c0f10] p-3 text-xs"
+                            >
+                              <div className="flex items-start gap-2">
+                                <Icon name="FileText" size={14} className="mt-0.5 flex-shrink-0 text-[#7c3aed]" />
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-[#e1e3e4]">
+                                      {citation.document.title}
+                                    </span>
+                                    {citation.pageNumber && (
+                                      <span className="text-[#ccc3d8]">• Page {citation.pageNumber}</span>
+                                    )}
+                                  </div>
+                                  {citation.sectionTitle && (
+                                    <div className="text-[#ccc3d8]">
+                                      Section: {citation.sectionTitle}
+                                    </div>
+                                  )}
+                                  {citation.contentPreview && (
+                                    <div className="mt-2 rounded bg-[#1d2021] p-2 text-[#ccc3d8]">
+                                      {citation.contentPreview}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
 
