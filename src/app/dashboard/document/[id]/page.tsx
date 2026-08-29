@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,20 +9,19 @@ import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
 
 interface Document {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   fileName: string;
   fileType: string;
   fileSize: number;
   fileUrl: string;
-  extractedText?: string;
+  extractedText?: string | null;
   status: string;
-  processedAt?: string;
-  processingError?: string;
+  processedAt?: string | null;
+  processingError?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,9 +36,8 @@ interface DocumentData {
   editedDescription: string;
 }
 
-export default function DocumentDetailPage({ params }: { params: { id: string } }) {
+export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [data, setData] = useState<DocumentData>({
     document: null,
@@ -55,7 +53,8 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const response = await fetch(`/api/documents/${params.id}`, {
+        const { id } = await params;
+        const response = await fetch(`/api/documents/${id}`, {
           credentials: 'include',
         });
         if (response.ok) {
@@ -82,7 +81,7 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
     if (session?.user?.id) {
       fetchDocument();
     }
-  }, [params.id, session]);
+  }, [params, session]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -108,8 +107,11 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
   };
 
   const handleSave = async () => {
+    if (!data.document) return;
+
     try {
-      const response = await fetch(`/api/documents/${params.id}`, {
+      const { id } = await params;
+      const response = await fetch(`/api/documents/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -155,8 +157,11 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
       return;
     }
 
+    if (!data.document) return;
+
     try {
-      const response = await fetch(`/api/documents/${params.id}`, {
+      const { id } = await params;
+      const response = await fetch(`/api/documents/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -219,6 +224,7 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: data.document.id }),
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -243,7 +249,8 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
 
   const fetchDocument = async () => {
     try {
-      const response = await fetch(`/api/documents/${params.id}`, {
+      const { id } = await params;
+      const response = await fetch(`/api/documents/${id}`, {
         credentials: 'include',
       });
       if (response.ok) {
@@ -296,7 +303,6 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
   }
 
   const fileExtension = data.document.fileName.split('.').pop()?.toUpperCase() || '';
-  const canPreview = ['PDF', 'TXT'].includes(fileExtension);
   const isPDF = fileExtension === 'PDF';
 
   return (
@@ -364,7 +370,6 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
               ) : fileExtension === 'TXT' ? (
                 <div className="prose prose-invert max-w-none">
                   <pre className="bg-[#1d2021] p-6 rounded-lg overflow-auto text-sm text-[#ccc3d8] font-mono whitespace-pre-wrap">
-                    {/* In production, this would fetch the file content */}
                     <span className="text-[#7c3aed]">
                       [TXT file preview - content would be displayed here]
                     </span>
