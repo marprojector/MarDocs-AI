@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
   });
 
   try {
-    // Fetch file content directly from private Vercel Blob
     const blobData = await get(document.fileUrl, { access: 'private' });
     if (!blobData || blobData.statusCode !== 200 || !blobData.stream) {
       throw new Error('File not found');
     }
-    // Convert stream to ArrayBuffer
+
+    // Convert stream to buffer for text extraction
     const chunks: Uint8Array[] = [];
     const reader = blobData.stream.getReader();
     while (true) {
@@ -58,16 +58,24 @@ export async function POST(request: NextRequest) {
       concatenated.set(chunk, offset);
       offset += chunk.length;
     }
-    const arrayBuffer = concatenated.buffer as ArrayBuffer;
+    const buffer = Buffer.from(concatenated);
     const fileType = document.fileType;
 
     let extractedText: string;
-    if (fileType === 'application/pdf') {
-      extractedText = 'PDF extraction placeholder';
+
+    // Text extraction implementation
+    if (fileType === 'text/plain') {
+      extractedText = buffer.toString('utf-8');
+    } else if (fileType === 'application/pdf') {
+      // PDF extraction
+      const { PDFParse } = await import('pdf-parse');
+      const pdf = new PDFParse({ data: buffer });
+      const result = await pdf.getText();
+      extractedText = result.text;
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      extractedText = 'DOCX extraction placeholder';
-    } else if (fileType === 'text/plain') {
-      extractedText = new TextDecoder().decode(arrayBuffer);
+      // DOCX extraction
+      const result = await (await import('docx-extractor')).extractText(buffer);
+      extractedText = result.join('\n\n');
     } else {
       throw new Error(`Unsupported file type: ${fileType}`);
     }
