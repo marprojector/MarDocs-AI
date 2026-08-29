@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // Upload to Vercel Blob
     const blob = await put(`documents/${session.user.id}/${Date.now()}-${file.name}`, buffer, {
-      access: 'public',
+      access: 'private',
     });
 
     // Create document record
