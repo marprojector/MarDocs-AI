@@ -55,7 +55,9 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const response = await fetch(`/api/documents/${params.id}`);
+        const response = await fetch(`/api/documents/${params.id}`, {
+          credentials: 'include',
+        });
         if (response.ok) {
           const document = await response.json();
           setData({
@@ -114,6 +116,7 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
           title: data.editedTitle,
           description: data.editedDescription,
         }),
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -153,7 +156,10 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
     }
 
     try {
-      const response = await fetch(`/api/documents/${params.id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/documents/${params.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
 
       if (response.ok) {
         router.push('/dashboard/documents');
@@ -237,7 +243,9 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
 
   const fetchDocument = async () => {
     try {
-      const response = await fetch(`/api/documents/${params.id}`);
+      const response = await fetch(`/api/documents/${params.id}`, {
+        credentials: 'include',
+      });
       if (response.ok) {
         const document = await response.json();
         setData((prev) => ({ ...prev, document }));
