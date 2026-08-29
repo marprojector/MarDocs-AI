@@ -75,7 +75,9 @@ export async function POST(request: NextRequest) {
       extractedText = buffer.toString('utf-8');
     } else if (fileType === 'application/pdf') {
       // PDF extraction using pdfjs-dist (Node.js compatible)
-      const loadingTask = pdfjs.getDocument({ data: buffer });
+      // pdfjs-dist requires Uint8Array, not Buffer
+      const data = new Uint8Array(buffer);
+      const loadingTask = pdfjs.getDocument({ data });
       const pdf = await loadingTask.promise;
       const pages: string[] = [];
       for (let i = 1; i <= pdf.numPages; i++) {
