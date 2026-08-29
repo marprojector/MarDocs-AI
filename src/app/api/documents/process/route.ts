@@ -4,6 +4,12 @@ import { get } from '@vercel/blob';
 import { extractRawText } from 'mammoth';
 import { NextRequest } from 'next/server';
 
+// Configure pdfjs-dist for Node.js environment
+import * as pdfjs from 'pdfjs-dist';
+if (typeof pdfjs.GlobalWorkerOptions !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.mjs';
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth();
 
@@ -68,11 +74,19 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       extractedText = buffer.toString('utf-8');
     } else if (fileType === 'application/pdf') {
-      // PDF extraction
-      const { PDFParse } = await import('pdf-parse');
-      const pdf = new PDFParse({ data: buffer });
-      const result = await pdf.getText();
-      extractedText = result.text;
+      // PDF extraction using pdfjs-dist (Node.js compatible)
+      const loadingTask = pdfjs.getDocument({ data: buffer });
+      const pdf = await loadingTask.promise;
+      const pages: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item) => (item as { str: string }).str)
+          .join(' ');
+        pages.push(pageText);
+      }
+      extractedText = pages.join('\n\n');
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       // DOCX extraction using mammoth
       const result = await extractRawText({ buffer: buffer });

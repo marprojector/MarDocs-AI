@@ -1,14 +1,28 @@
-import { PDFParse } from 'pdf-parse';
-import { extractText as extractDocxText } from 'docx-extractor';
+import { extractRawText } from 'mammoth';
+
+// Configure pdfjs-dist for Node.js environment
+import * as pdfjs from 'pdfjs-dist';
+if (typeof pdfjs.GlobalWorkerOptions !== 'undefined') {
+  pdfjs.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.mjs';
+}
 
 /**
  * Extract text from a PDF buffer
  */
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    const pdf = new PDFParse({ data: buffer });
-    const result = await pdf.getText();
-    return result.text;
+    const loadingTask = pdfjs.getDocument({ data: buffer });
+    const pdf = await loadingTask.promise;
+    const pages: string[] = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item) => (item as { str: string }).str)
+        .join(' ');
+      pages.push(pageText);
+    }
+    return pages.join('\n\n');
   } catch (error) {
     console.error('[PDF_EXTRACT]', error);
     throw new Error('Failed to extract text from PDF');
@@ -20,10 +34,9 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
  */
 export async function extractTextFromDOCX(buffer: Buffer): Promise<string> {
   try {
-    const result = await extractDocxText(buffer);
-    // docx-extractor returns an array of strings (one per section/page)
-    // Join them with newlines for a single text block
-    return result.join('\n\n');
+    const result = await extractRawText({ buffer: buffer });
+    // mammoth returns the entire text as a string, split into sections
+    return result.value;
   } catch (error) {
     console.error('[DOCX_EXTRACT]', error);
     throw new Error('Failed to extract text from DOCX');
