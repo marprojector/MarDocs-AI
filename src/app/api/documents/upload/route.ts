@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { DocumentSchema, CreateDocumentSchema } from '@/lib/document-validation';
-import { put } from '@vercel/blob';
+import { put, del } from '@vercel/blob';
 import { NextRequest } from 'next/server';
 
 // Allowed file types for upload
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       // Delete uploaded file if validation fails
-      await fetch(blob.url, { method: 'DELETE' });
+      await del(blob.url);
       return Response.json(
         { error: 'Invalid document data', details: validation.error.flatten() },
         { status: 400 }
@@ -89,6 +89,14 @@ export async function POST(request: NextRequest) {
     return Response.json(result);
   } catch (error) {
     console.error('[UPLOAD_POST]', error);
+    
+    // Check if it's a Vercel Blob error
+    const isBlobError = error && typeof error === 'object' && 'name' in error && error.name === 'BlobError';
+    
+    // Return 500 for Blob errors or other server errors
+    if (isBlobError) {
+      return Response.json({ error: 'Failed to upload to storage' }, { status: 500 });
+    }
     
     // If it's a validation error from Zod, return it
     if (error instanceof Error && 'flatten' in error) {

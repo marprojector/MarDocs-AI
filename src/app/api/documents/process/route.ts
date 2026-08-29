@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { get } from '@vercel/blob';
 import { NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -38,11 +39,26 @@ export async function POST(request: NextRequest) {
   });
 
   try {
-    const response = await fetch(document.fileUrl);
-    if (!response.ok) {
-      throw new Error('Failed to download file');
+    // Fetch file content directly from private Vercel Blob
+    const blobData = await get(document.fileUrl, { access: 'private' });
+    if (!blobData || blobData.statusCode !== 200 || !blobData.stream) {
+      throw new Error('File not found');
     }
-    const arrayBuffer = await response.arrayBuffer();
+    // Convert stream to ArrayBuffer
+    const chunks: Uint8Array[] = [];
+    const reader = blobData.stream.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+    const concatenated = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
+    let offset = 0;
+    for (const chunk of chunks) {
+      concatenated.set(chunk, offset);
+      offset += chunk.length;
+    }
+    const arrayBuffer = concatenated.buffer as ArrayBuffer;
     const fileType = document.fileType;
 
     let extractedText: string;

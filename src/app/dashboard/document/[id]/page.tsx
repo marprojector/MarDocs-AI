@@ -165,16 +165,30 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
     }
   };
 
-  const handleOpenFile = () => {
-    if (data.document?.fileUrl) {
-      window.open(data.document.fileUrl, '_blank');
+  const handleOpenFile = async () => {
+    if (data.document?.id) {
+      const response = await fetch(`/api/documents/${data.document.id}/file`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } else {
+        setData({ ...data, error: 'Failed to open file' });
+      }
     }
   };
 
   const handleDownload = async () => {
-    if (data.document?.fileUrl) {
+    if (data.document?.id) {
       try {
-        const response = await fetch(data.document.fileUrl);
+        const response = await fetch(`/api/documents/${data.document.id}/file`, {
+          credentials: 'include',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
