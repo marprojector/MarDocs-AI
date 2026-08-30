@@ -18,6 +18,7 @@ model User {
   citations     Citation[]
   conversations Conversation[]
   documents     Document[]
+  documentChunks DocumentChunk[]
   favorites     Favorite[]
   messages      Message[]
   sessions      Session[]
@@ -74,7 +75,11 @@ model Document {
   processedAt     DateTime?
   processingError String?
   title           String
+  isIndexed       Boolean        @default(false)
+  indexedAt       DateTime?
+  indexingError   String?
   citations       Citation[]
+  chunks          DocumentChunk[]
   conversations   Conversation[]
   user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites       Favorite[]
@@ -83,6 +88,7 @@ model Document {
   @@index([status])
   @@index([createdAt])
   @@index([fileType])
+  @@index([isIndexed])
 }
 
 model Conversation {
@@ -122,21 +128,24 @@ model Message {
 }
 
 model Citation {
-  id             String   @id @default(cuid())
+  id             String         @id @default(cuid())
   messageId      String
   documentId     String
+  chunkId        String?
   pageNumber     Int?
   sectionTitle   String?
   contentPreview String?
   relevanceScore Float?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime       @default(now())
   userId         String?
-  document       Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  message        Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user           User?    @relation(fields: [userId], references: [id])
+  chunk          DocumentChunk? @relation(fields: [chunkId], references: [id], onDelete: SetNull)
+  document       Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  message        Message        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user           User?          @relation(fields: [userId], references: [id])
 
   @@index([messageId])
   @@index([documentId])
+  @@index([chunkId])
   @@index([relevanceScore])
 }
 
@@ -167,4 +176,27 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+model DocumentChunk {
+  id         String    @id @default(cuid())
+  documentId String
+  userId     String
+  content    String
+  embedding  Unsupported("vector(1024)")
+  chunkIndex Int
+  tokenCount Int
+  pageNumber Int?
+  startChar  Int
+  endChar    Int
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  citations  Citation[]
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([chunkIndex])
+  @@index([userId, documentId])
 }
