@@ -369,7 +369,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           setStreamingContent(accumulatedContent);
         }
 
-        const assistantMessageId = (Date.now() + 1).toString();
+        const assistantMessageId = response.headers.get('X-Assistant-Message-Id');
+        if (!assistantMessageId) {
+          throw new Error('Assistant message ID was not returned');
+        }
+
         const assistantMessage: ChatMessage = {
           id: assistantMessageId,
           role: 'assistant',
@@ -379,9 +383,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
         setChatMessages((prev) => [...prev, assistantMessage]);
         setStreamingContent('');
 
-        // Fetch citations after streaming completes
-        // Use a small delay to ensure backend has finished saving
-        setTimeout(async () => {
+        for (let attempt = 0; attempt < 5; attempt++) {
           const citations = await fetchCitations(assistantMessageId);
           if (citations.length > 0) {
             setChatMessages((prev) =>
@@ -389,8 +391,10 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 msg.id === assistantMessageId ? { ...msg, citations } : msg
               )
             );
+            break;
           }
-        }, 500);
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
       }
     } catch (error) {
       console.error('[CHAT_ERROR]', error);
