@@ -17,6 +17,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const requestId = crypto.randomUUID();
+  const log = (event: string, details?: Record<string, unknown>) => {
+    console.log('[RAG_CHAT]', event, { requestId, ...details });
+  };
+
+  log('start');
+
   try {
     const session = await auth();
 
@@ -44,6 +51,9 @@ export async function POST(
     if (!document) {
       return Response.json({ error: 'Document not found' }, { status: 404 });
     }
+
+    log('document validated');
+    log('indexed status', { isIndexed: document.isIndexed });
 
     // Verify document has been successfully processed
     if (document.status !== 'COMPLETED') {
@@ -114,9 +124,8 @@ export async function POST(
 
     if (document.isIndexed) {
       try {
-        console.log('[RAG_CHAT] Starting retrieval');
         const queryEmbedding = await generateEmbedding(message);
-        console.log('[RAG_CHAT] Query embedding generated');
+        log('query embedding success');
         const chunks = await searchSimilarChunks({
           userId: session.user.id,
           documentId,
@@ -124,6 +133,8 @@ export async function POST(
           topK: 5,
           similarityThreshold: 0.5,
         });
+        log('vector search success');
+        log('retrieved chunk count', { count: chunks.length });
         const uniqueChunks = Array.from(new Map(chunks.map((chunk) => [chunk.id, chunk])).values());
         uniqueChunks.sort((a, b) => b.similarity - a.similarity);
         let contextLength = 0;
@@ -134,18 +145,24 @@ export async function POST(
           ragContext += addition;
           contextLength += addition.length;
         }
-        console.log('[RAG_CHAT] Retrieved', retrievedChunks.length, 'chunks');
+        log('selected chunk count', { count: retrievedChunks.length });
         if (retrievedChunks.length > 0) {
           retrievedChunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
-          console.log('[RAG_CHAT] Context assembled');
         }
       } catch (error) {
-        console.error('[RAG_CHAT] Retrieval failed:', error instanceof Error ? error.message : 'Unknown error');
+        log('query embedding failure', {
+          errorType: error instanceof Error ? error.name : 'Unknown',
+        });
+        log('vector search failure', {
+          errorType: error instanceof Error ? error.name : 'Unknown',
+        });
       }
     }
 
     if (retrievedChunks.length === 0) {
-      console.log('[RAG_CHAT] Falling back to full document');
+      log('fallback reason', {
+        reason: document.isIndexed ? 'ZERO_RETRIEVED_CHUNKS' : 'UNINDEXED_DOCUMENT',
+      });
       ragContext = document.extractedText.substring(0, maxContextCharacters);
     }
 
@@ -198,6 +215,7 @@ Instructions:
         content: '',
       },
     });
+    log('assistant message created', { assistantMessageId: assistantMessage.id });
 
     // Stream AI response
     const result = streamText({
@@ -213,7 +231,9 @@ Instructions:
           },
         });
 
-        console.log('[RAG_CHAT] Assistant message persisted');
+        log('citation branch', {
+          branch: retrievedChunks.length > 0 ? 'RAG' : 'LEGACY',
+        });
 
         try {
           if (retrievedChunks.length > 0) {
@@ -239,9 +259,12 @@ Instructions:
               },
             });
           }
-          console.log('[RAG_CHAT] Citations persisted');
+          log('citation count created', { count: retrievedChunks.length });
+          log('completion');
         } catch (error) {
-          console.error('[RAG_CHAT] Citation persistence failed:', error instanceof Error ? error.message : 'Unknown error');
+          log('citation failure', {
+            errorType: error instanceof Error ? error.name : 'Unknown',
+          });
         }
       },
     });
