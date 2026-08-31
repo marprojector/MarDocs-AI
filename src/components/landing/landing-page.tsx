@@ -65,35 +65,22 @@ export const FeatureCard = ({
 export const HeroSection = () => {
   return (
     <section className="relative flex flex-col items-center justify-center py-16 sm:py-24 text-center w-full overflow-hidden">
-      {/* Background glow effects */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] sm:h-[500px] w-[400px] sm:w-[800px] max-w-3xl -z-10">
-        <div className="absolute inset-0 bg-[#7c3aed]/20 blur-[100px] rounded-full" />
-        <div className="absolute inset-0 bg-[#d2bbff]/10 blur-[80px] rounded-full" />
-      </div>
-
-      <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 w-full">
-        <Reveal delay={0.1}>
-          <div className="mb-4 sm:mb-6 inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 px-3 sm:px-4 py-1 sm:py-1.5">
-            <span className="flex h-1.5 sm:h-2 w-1.5 sm:w-2 rounded-full bg-[#d2bbff]" />
-            <span className="text-xs sm:text-sm font-medium text-[#d2bbff] whitespace-nowrap">
-              AI Document Assistant
-            </span>
-          </div>
-        </Reveal>
-        <Reveal delay={0.2}>
-          <h1 className="mb-4 sm:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-[#e1e3e4] leading-tight">
-            Your Documents. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d2bbff] to-[#7c3aed]">
-              Now Intelligent.
-            </span>
-          </h1>
-        </Reveal>
-        <Reveal delay={0.3}>
-          <p className="mb-8 sm:mb-10 text-sm sm:text-base md:text-lg text-[#ccc3d8] px-4 sm:px-0">
-            Upload your documents and have natural conversations with an AI that
-            understands what you read.
-          </p>
-        </Reveal>
+        <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 w-full">
+          <Reveal delay={0.1}>
+            <div className="mb-5 inline-flex items-center gap-2 border-l-2 border-[#7c3aed] pl-3 text-left text-xs font-medium uppercase tracking-[0.18em] text-[#d2bbff]">
+              Document intelligence, without the busywork
+            </div>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <h1 className="mb-5 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-[#e1e3e4] leading-[1.08]">
+              Read less. Understand more.
+            </h1>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <p className="mx-auto mb-8 max-w-2xl text-sm sm:text-base md:text-lg leading-7 text-[#ccc3d8]">
+              MarDocs turns your PDFs and documents into a focused workspace for asking questions, finding evidence, and getting clear answers.
+            </p>
+          </Reveal>
         <Reveal delay={0.4}>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-center w-full sm:w-auto">
             <Button className="h-11 sm:h-14 px-6 sm:px-8 text-sm sm:text-lg w-full sm:w-auto whitespace-nowrap" asChild>
@@ -112,38 +99,40 @@ export const HeroSection = () => {
         </Reveal>
       </div>
 
-      {/* Mock document viewer illustration */}
-      <div className="relative mt-12 sm:mt-20 w-full max-w-4xl px-4 sm:px-6">
-        <div className="relative rounded-xl border border-[#958da1]/30 bg-[#0c0f10] p-3 sm:p-4 shadow-2xl w-full">
-          <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2">
-            <div className="flex h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#ff5f56]" />
-            <div className="flex h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#ffbd2e]" />
-            <div className="flex h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#27c93f]" />
+      <div className="relative mt-12 sm:mt-16 w-full max-w-5xl px-4 sm:px-6">
+        <div className="border border-[#958da1]/25 bg-[#0c0f10] shadow-2xl shadow-black/30">
+          <div className="flex items-center justify-between border-b border-[#958da1]/20 px-4 py-3 text-left">
+            <div className="flex min-w-0 items-center gap-3">
+              <Icon name="FileText" size={18} className="flex-shrink-0 text-[#7c3aed]" />
+              <span className="truncate text-sm font-medium text-[#e1e3e4]">research-notes.pdf</span>
+            </div>
+            <span className="hidden text-xs text-[#27c93f] sm:block">Ready to chat</span>
           </div>
-          <div className="aspect-video rounded-lg bg-gradient-to-br from-[#1d2021] to-[#111415] p-3 sm:p-6">
-            <div className="flex h-full flex-col justify-between gap-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded bg-[#7c3aed]/20 flex items-center justify-center">
-                    <Icon name="FileText" size={20} className="text-[#d2bbff]" />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="h-2 w-48 rounded bg-[#e1e3e4]/20" />
-                    <div className="h-2 w-24 rounded bg-[#ccc3d8]/20" />
-                  </div>
+          <div className="grid min-h-[280px] grid-cols-1 divide-y divide-[#958da1]/20 text-left md:grid-cols-[1.15fr_0.85fr] md:divide-x md:divide-y-0">
+            <div className="space-y-4 p-5 sm:p-8">
+              <div className="h-2 w-24 bg-[#958da1]/40" />
+              <div className="space-y-2">
+                <div className="h-2 w-full bg-[#e1e3e4]/15" />
+                <div className="h-2 w-11/12 bg-[#e1e3e4]/15" />
+                <div className="h-2 w-4/5 bg-[#e1e3e4]/15" />
+              </div>
+              <div className="space-y-2 pt-3">
+                <div className="h-2 w-full bg-[#e1e3e4]/15" />
+                <div className="h-2 w-5/6 bg-[#e1e3e4]/15" />
+                <div className="h-2 w-3/4 bg-[#e1e3e4]/15" />
+              </div>
+            </div>
+            <div className="flex flex-col justify-between bg-[#111415] p-5 sm:p-8">
+              <div>
+                <p className="mb-4 text-xs uppercase tracking-[0.16em] text-[#958da1]">Conversation</p>
+                <div className="ml-auto max-w-[90%] bg-[#7c3aed] px-3 py-2 text-xs leading-5 text-white">
+                  What are the main findings?
                 </div>
-                <div className="flex gap-2">
-                  <div className="h-8 w-8 rounded bg-[#958da1]/20" />
-                  <div className="h-8 w-8 rounded bg-[#958da1]/20" />
+                <div className="mt-3 max-w-[90%] border-l-2 border-[#7c3aed]/70 pl-3 text-xs leading-5 text-[#ccc3d8]">
+                  The document identifies three findings and supports each with referenced evidence.
                 </div>
               </div>
-              <div className="space-y-3">
-                <div className="h-4 w-full rounded bg-[#e1e3e4]/10" />
-                <div className="h-4 w-5/6 rounded bg-[#e1e3e4]/10" />
-                <div className="h-4 w-4/6 rounded bg-[#e1e3e4]/10" />
-                <div className="h-4 w-full rounded bg-[#e1e3e4]/10" />
-                <div className="h-4 w-3/4 rounded bg-[#e1e3e4]/10" />
-              </div>
+              <div className="mt-8 border-t border-[#958da1]/20 pt-3 text-xs text-[#958da1]">Sources · 3 references</div>
             </div>
           </div>
         </div>
@@ -162,18 +151,22 @@ export const FeaturesSection = () => {
               Everything you need to analyze documents
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-[#ccc3d8]">
-              Powerful features packaged in a simple, intuitive interface.
+              A focused workspace for turning source material into understanding.
             </p>
           </div>
         </Reveal>
-        <StaggerReveal stagger={0.1} className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+        <StaggerReveal stagger={0.1} className="grid gap-px overflow-hidden border border-[#958da1]/20 bg-[#958da1]/20 sm:grid-cols-2">
           {features.map((feature) => (
             <CardReveal key={feature.title}>
-              <FeatureCard
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-              />
+              <div className="group flex h-full gap-4 bg-[#111415] p-6 sm:p-8 transition-colors hover:bg-[#1d2021]">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center border border-[#7c3aed]/40 text-[#d2bbff]">
+                  <Icon name={feature.icon} size={20} />
+                </div>
+                <div>
+                  <h3 className="mb-2 text-lg font-semibold text-[#e1e3e4]">{feature.title}</h3>
+                  <p className="text-sm leading-6 text-[#ccc3d8]">{feature.description}</p>
+                </div>
+              </div>
             </CardReveal>
           ))}
         </StaggerReveal>
@@ -211,8 +204,8 @@ export const HowItWorksSection = () => {
           <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl font-semibold text-[#e1e3e4]">
             How It Works
           </h2>
-          <p className="text-sm sm:text-base md:text-lg text-[#ccc3d8]">
-            Three simple steps to intelligent document analysis.
+            <p className="text-sm sm:text-base md:text-lg text-[#ccc3d8]">
+            Upload a file, ask a question, and trace the answer back to its source.
           </p>
         </div>
         <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">

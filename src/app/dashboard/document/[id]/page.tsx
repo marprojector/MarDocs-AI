@@ -58,6 +58,43 @@ interface Citation {
   };
 }
 
+function renderMarkdown(text: string) {
+  return text.split(/\n\n+/).map((block, blockIndex) => {
+    const lines = block.split('\n');
+    const isList = lines.every((line) => /^\s*(?:[-*]|\d+\.)\s+/.test(line));
+
+    if (isList) {
+      const ordered = /^\s*\d+\./.test(lines[0]);
+      const List = ordered ? 'ol' : 'ul';
+      return (
+        <List key={blockIndex} className={`my-2 space-y-1 pl-5 ${ordered ? 'list-decimal' : 'list-disc'}`}>
+          {lines.map((line, index) => (
+            <li key={index}>{formatInlineMarkdown(line.replace(/^\s*(?:[-*]|\d+\.)\s+/, ''))}</li>
+          ))}
+        </List>
+      );
+    }
+
+    if (/^#{1,3}\s+/.test(lines[0])) {
+      const level = lines[0].match(/^#+/)?.[0].length ?? 2;
+      const Heading = level === 1 ? 'h3' : 'h4';
+      return <Heading key={blockIndex} className="mb-2 mt-3 font-semibold text-[#e1e3e4]">{formatInlineMarkdown(lines[0].replace(/^#+\s+/, ''))}</Heading>;
+    }
+
+    return <p key={blockIndex} className="my-2 leading-6">{formatInlineMarkdown(block.replace(/\n/g, ' '))}</p>;
+  });
+}
+
+function formatInlineMarkdown(text: string) {
+  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_)/g);
+  return parts.map((part, index) => {
+    if (part.startsWith('`') && part.endsWith('`')) return <code key={index} className="rounded bg-[#050505] px-1.5 py-0.5 font-mono text-[0.9em] text-[#d2bbff]">{part.slice(1, -1)}</code>;
+    if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('__') && part.endsWith('__'))) return <strong key={index}>{part.slice(2, -2)}</strong>;
+    if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) return <em key={index}>{part.slice(1, -1)}</em>;
+    return part;
+  });
+}
+
 export default function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -88,6 +125,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const [isFavorited, setIsFavorited] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const shouldFollowChatRef = useRef(true);
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -384,12 +422,15 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleChatScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const element = event.currentTarget;
+    shouldFollowChatRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 96;
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (shouldFollowChatRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [chatMessages, streamingContent]);
 
   const fetchCitations = async (messageId: string) => {
@@ -411,13 +452,13 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     return [];
   };
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isStreaming || !documentId) return;
+  const handleSendMessage = async (question = inputMessage) => {
+    if (!question.trim() || isStreaming || !documentId) return;
 
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       role: 'user',
-      content: inputMessage,
+      content: question,
     };
 
     setChatMessages((prev) => [...prev, userMessage]);
@@ -432,7 +473,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: inputMessage,
+          message: question,
           conversationId: conversationId,
         }),
         credentials: 'include',
@@ -643,7 +684,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 </CardHeader>
                 <CardContent className="p-0">
                   {/* Messages Container */}
-                  <div className="h-[400px] sm:h-[500px] overflow-y-auto bg-[#050505] p-3 sm:p-4 space-y-3 sm:space-y-4">
+                  <div onScroll={handleChatScroll} className="h-[400px] sm:h-[500px] overflow-y-auto bg-[#050505] p-3 sm:p-4 space-y-3 sm:space-y-4">
                     {chatMessages.length === 0 && !streamingContent && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -656,10 +697,19 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                               <Icon name="MessageSquare" size={32} />
                             </div>
                           </div>
-                          <h3 className="text-base sm:text-lg font-semibold text-[#e1e3e4]">Start a conversation</h3>
-                          <p className="text-xs sm:text-sm text-[#ccc3d8]">
-                            Ask questions about the document content and get AI-powered answers.
-                          </p>
+                          <h3 className="text-base sm:text-lg font-semibold text-[#e1e3e4]">Ask about this document</h3>
+                          <div className="flex flex-wrap justify-center gap-2 pt-2">
+                            {['Summarize this document', 'What are the key points?', 'What is this document about?'].map((suggestion) => (
+                              <button
+                                key={suggestion}
+                                type="button"
+                                onClick={() => handleSendMessage(suggestion)}
+                                className="rounded-md border border-[#958da1]/30 px-3 py-2 text-xs text-[#ccc3d8] transition-colors hover:border-[#7c3aed]/60 hover:text-[#e1e3e4]"
+                              >
+                                {suggestion}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -685,7 +735,9 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                               {msg.role === 'assistant' && (
                                 <Icon name="Bot" size={14} className="mt-0.5 sm:mt-1 flex-shrink-0 text-[#7c3aed]" />
                               )}
-                              <p className="text-xs sm:text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap min-w-0">{msg.content}</p>
+                              <div className="min-w-0 text-xs sm:text-sm break-words overflow-wrap-anywhere">
+                                {msg.role === 'assistant' ? renderMarkdown(msg.content) : <p className="whitespace-pre-wrap">{msg.content}</p>}
+                              </div>
                             </div>
                           </div>
 
@@ -697,20 +749,21 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                               transition={{ delay: 0.2 }}
                               className="mt-1.5 sm:mt-2 w-full max-w-[90%] sm:max-w-[85%] lg:max-w-[80%] space-y-1.5 sm:space-y-2"
                             >
+                              <p className="px-1 text-[11px] font-medium uppercase tracking-[0.16em] text-[#958da1]">Sources</p>
                               {msg.citations.map((citation) => (
                                 <motion.div
                                   key={citation.id}
                                   initial={{ opacity: 0, x: -10 }}
                                   animate={{ opacity: 1, x: 0 }}
-                                  className="rounded-lg border border-[#958da1]/20 bg-[#0c0f10] p-2 sm:p-2.5 lg:p-3 text-xs w-full overflow-hidden"
+                                  className="border-l-2 border-[#7c3aed]/60 bg-[#0c0f10]/70 px-3 py-2 text-xs w-full overflow-hidden"
                                 >
                                   <div className="flex items-start gap-1.5 sm:gap-2 min-w-0">
                                     <Icon name="FileText" size={12} className="mt-0.5 flex-shrink-0 text-[#7c3aed]" />
                                     <div className="flex-1 space-y-1 min-w-0 overflow-hidden">
                                       <div className="flex items-start gap-1.5 flex-wrap min-w-0">
-                                        <span className="font-medium text-[#e1e3e4] break-words min-w-0 flex-1">
-                                          {citation.document.title}
-                                        </span>
+                                         <span className="font-medium text-[#e1e3e4] break-words min-w-0 flex-1">
+                                           {citation.document.fileName}
+                                         </span>
                                         {citation.pageNumber && (
                                           <span className="text-[#ccc3d8] whitespace-nowrap flex-shrink-0 text-xs">• Page {citation.pageNumber}</span>
                                         )}
@@ -720,11 +773,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                                           Section: {citation.sectionTitle}
                                         </div>
                                       )}
-                                      {citation.contentPreview && (
-                                        <div className="mt-1.5 rounded bg-[#1d2021] p-1.5 sm:p-2 text-[#ccc3d8] break-words overflow-hidden">
-                                          {citation.contentPreview}
-                                        </div>
-                                      )}
+                                       {citation.contentPreview && (
+                                         <blockquote className="mt-1.5 border-l border-[#958da1]/40 pl-2 text-[#ccc3d8] break-words overflow-hidden">
+                                           “{citation.contentPreview}”
+                                         </blockquote>
+                                       )}
+                                       {citation.relevanceScore !== null && (
+                                         <span className="text-[10px] text-[#958da1]">Relevant source</span>
+                                       )}
                                     </div>
                                   </div>
                                 </motion.div>
@@ -759,7 +815,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                         <div className="rounded-lg px-3 sm:px-4 py-2 sm:py-3 bg-[#1d2021] border border-[#958da1]/20">
                           <div className="flex items-center gap-2">
                             <Icon name="Loader2" size={16} className="animate-spin text-[#7c3aed]" />
-                            <span className="text-xs sm:text-sm text-[#ccc3d8]">Thinking...</span>
+                            <span className="text-xs sm:text-sm text-[#ccc3d8]">Generating answer</span>
                           </div>
                         </div>
                       </motion.div>
@@ -780,12 +836,12 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Ask a question..."
+                       placeholder="Ask anything about this document…"
                       className="flex-1 bg-[#0c0f10] border-[#958da1]/30 text-[#e1e3e4] text-sm h-10 min-w-0"
                       disabled={isStreaming}
                     />
                     <Button
-                      onClick={handleSendMessage}
+                      onClick={() => handleSendMessage()}
                       disabled={!inputMessage.trim() || isStreaming}
                       className="px-3 flex-shrink-0 h-10 w-10 sm:w-auto sm:px-4"
                       size="default"

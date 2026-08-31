@@ -14,6 +14,7 @@ export async function GET() {
       where: {
         userId: session.user.id,
         documentId: { not: null },
+        conversationId: null,
       },
       orderBy: {
         createdAt: 'desc',
