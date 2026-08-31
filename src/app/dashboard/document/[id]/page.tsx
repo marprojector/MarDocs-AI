@@ -74,9 +74,19 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const [documentId, setDocumentId] = useState<string>('');
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [conversations, setConversations] = useState<
+    {
+      id: string;
+      title: string;
+      createdAt: string;
+      messages: { id: string; role: string; content: string; createdAt: string }[];
+    }[]
+  >([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -112,6 +122,88 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       fetchDocument();
     }
   }, [params, session]);
+
+  // Load persisted conversations when document loads
+  useEffect(() => {
+    const loadConversations = async () => {
+      if (!documentId) return;
+      try {
+        const response = await fetch(`/api/documents/${documentId}/conversations`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const result = await response.json();
+          const conversations = result.conversations || [];
+          setConversations(conversations);
+          if (conversations.length > 0) {
+            // Resume most recent conversation
+            setConversationId(conversations[0].id);
+            const persistedMessages = await Promise.all(
+              conversations[0].messages.map(async (m: { id: string; role: string; content: string }) => ({
+                id: m.id,
+                role: m.role.toLowerCase() as 'user' | 'assistant',
+                content: m.content,
+                citations:
+                  m.role === 'ASSISTANT'
+                    ? await fetch(`/api/documents/${documentId}/chat/citations?messageId=${m.id}`, {
+                        credentials: 'include',
+                      }).then((response) => (response.ok ? response.json() : { citations: [] }))
+                        .then((result) => result.citations || [])
+                    : undefined,
+              }))
+            );
+            setChatMessages(persistedMessages);
+          }
+        }
+      } catch (err) {
+        console.error('[LOAD_CONVERSATIONS_ERROR]', err);
+      }
+    };
+
+    loadConversations();
+  }, [documentId]);
+
+  // Load favorite status for this document
+  useEffect(() => {
+    const loadFavoriteStatus = async () => {
+      if (!documentId) return;
+      try {
+        const response = await fetch('/api/favorites', { credentials: 'include' });
+        if (response.ok) {
+          const result = await response.json();
+          const favorites = result.favorites || [];
+          setIsFavorited(favorites.some((f: { documentId: string }) => f.documentId === documentId));
+        }
+      } catch {
+        // Non-critical; favorite toggle still works
+      }
+    };
+
+    loadFavoriteStatus();
+  }, [documentId]);
+
+  const handleToggleFavorite = async () => {
+    if (isTogglingFavorite || !documentId) return;
+    setIsTogglingFavorite(true);
+    try {
+      const response = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId }),
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setIsFavorited(result.favorited);
+      } else {
+        setData((prev) => ({ ...prev, error: 'Failed to update favorite' }));
+      }
+    } catch {
+      setData((prev) => ({ ...prev, error: 'Network error' }));
+    } finally {
+      setIsTogglingFavorite(false);
+    }
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -374,6 +466,14 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
           throw new Error('Assistant message ID was not returned');
         }
 
+        // Refresh conversations list so persistence state stays current
+        fetch(`/api/documents/${documentId}/conversations`, { credentials: 'include' })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((result) => {
+            if (result?.conversations) setConversations(result.conversations);
+          })
+          .catch(() => {});
+
         const assistantMessage: ChatMessage = {
           id: assistantMessageId,
           role: 'assistant',
@@ -488,14 +588,57 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             >
               <Card className="bg-[#0c0f10] border-[#958da1]/20">
                 <CardHeader className="border-b border-[#958da1]/20 bg-[#1d2021]/50 p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <CardTitle className="text-base sm:text-lg text-[#e1e3e4]">Chat with Document</CardTitle>
                       <CardDescription className="text-xs sm:text-sm text-[#ccc3d8]">
-                        Ask questions about your document
+                        {conversations.length > 0
+                          ? `${conversations.length} conversation${conversations.length === 1 ? '' : 's'}`
+                          : 'Ask questions about your document'}
                       </CardDescription>
                     </div>
-                    <Icon name="MessageSquare" size={20} className="text-[#7c3aed] flex-shrink-0" />
+                    <div className="flex flex-shrink-0 items-center gap-2">
+                      {conversations.length > 0 && (
+                        <select
+                          value={conversationId ?? ''}
+                          onChange={(e) => {
+                            const selected = conversations.find((c) => c.id === e.target.value);
+                            if (!selected) return;
+                            setConversationId(selected.id);
+                            setChatMessages(
+                              selected.messages.map((m) => ({
+                                id: m.id,
+                                role: m.role.toLowerCase() as 'user' | 'assistant',
+                                content: m.content,
+                              }))
+                            );
+                          }}
+                          className="max-w-[160px] sm:max-w-[220px] truncate rounded-md border border-[#958da1]/30 bg-[#0c0f10] px-2 py-1.5 text-xs text-[#e1e3e4] focus:border-[#7c3aed] focus:outline-none"
+                          aria-label="Select conversation"
+                        >
+                          {conversations.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.title || 'Conversation'}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      {conversationId && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 flex-shrink-0 text-xs"
+                          onClick={() => {
+                            setConversationId(null);
+                            setChatMessages([]);
+                            setInputMessage('');
+                          }}
+                        >
+                          <Icon name="Plus" size={14} className="mr-1" />
+                          New
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -688,9 +831,6 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                 <Chip variant="default" size="sm" className="hidden sm:flex text-xs">
                   {data.document.fileType.replace('application/', '').replace('text/', '').toUpperCase() || 'FILE'}
                 </Chip>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#ccc3d8] hover:text-[#e1e3e4] hidden lg:flex">
-                  <Icon name="Maximize2" size={16} />
-                </Button>
               </div>
             </div>
 
@@ -717,15 +857,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               ) : fileExtension === 'TXT' ? (
                 <div className="prose prose-invert max-w-none">
                   <pre className="bg-[#1d2021] p-6 rounded-lg overflow-auto text-sm text-[#ccc3d8] font-mono whitespace-pre-wrap">
-                    <span className="text-[#7c3aed]">
-                      [TXT file preview - content would be displayed here]
-                    </span>
-                    {data.document.description && (
-                      <div className="mt-4 text-[#ccc3d8]">
-                        <h4 className="font-semibold text-[#d2bbff]">Description:</h4>
-                        {data.document.description}
-                      </div>
-                    )}
+                    {data.document.extractedText || 'No preview available. Process the document to extract its text.'}
                   </pre>
                 </div>
               ) : (
@@ -786,6 +918,21 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
             transition={{ delay: 0.4 }}
             className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2"
           >
+            <Button
+              onClick={handleToggleFavorite}
+              disabled={isTogglingFavorite}
+              variant={isFavorited ? 'default' : 'outline'}
+              size="sm"
+              className={`text-xs sm:text-sm ${isFavorited ? 'bg-[#7c3aed] hover:bg-[#6d37d6]' : ''}`}
+              aria-pressed={isFavorited}
+            >
+              {isTogglingFavorite ? (
+                <Icon name="Loader2" size={14} className="mr-1.5 sm:mr-2 animate-spin" />
+              ) : (
+                <Icon name="Star" size={14} className={`mr-1.5 sm:mr-2 ${isFavorited ? 'fill-current' : ''}`} />
+              )}
+              <span>{isFavorited ? 'Favorited' : 'Favorite'}</span>
+            </Button>
             <Button onClick={handleOpenFile} size="sm" className="text-xs sm:text-sm">
               <Icon name="ExternalLink" size={14} className="mr-1.5 sm:mr-2" />
               <span>Open</span>

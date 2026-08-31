@@ -102,9 +102,11 @@ export const HeroSection = () => {
                 <Icon name="ArrowRight" size={16} className="ml-1.5 sm:ml-2 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button variant="outline" className="h-11 sm:h-14 px-6 sm:px-8 text-sm sm:text-lg w-full sm:w-auto whitespace-nowrap">
-              See how it works
-              <Icon name="Play" size={16} className="ml-1.5 sm:ml-2" />
+            <Button variant="outline" className="h-11 sm:h-14 px-6 sm:px-8 text-sm sm:text-lg w-full sm:w-auto whitespace-nowrap" asChild>
+              <a href="#how-it-works">
+                See how it works
+                <Icon name="Play" size={16} className="ml-1.5 sm:ml-2" />
+              </a>
             </Button>
           </div>
         </Reveal>
@@ -152,7 +154,7 @@ export const HeroSection = () => {
 
 export const FeaturesSection = () => {
   return (
-    <section className="py-16 sm:py-24 overflow-hidden">
+    <section id="features" className="py-16 sm:py-24 overflow-hidden scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <Reveal>
           <div className="mb-10 sm:mb-16 text-center">
@@ -203,7 +205,7 @@ export const HowItWorksSection = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-24 bg-[#0c0f10]">
+    <section id="how-it-works" className="py-16 sm:py-24 bg-[#0c0f10] scroll-mt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-10 sm:mb-16 text-center">
           <h2 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl font-semibold text-[#e1e3e4]">
@@ -238,7 +240,7 @@ export const Footer = () => {
   return (
     <footer className="border-t border-[#958da1]/20 py-8 sm:py-12 bg-[#0c0f10]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="grid gap-6 sm:gap-8 grid-cols-2 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-6 sm:gap-8 grid-cols-2 sm:grid-cols-2 md:grid-cols-2">
           <div className="space-y-3 sm:space-y-4 col-span-2 sm:col-span-1">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-[#7c3aed] text-white flex-shrink-0">
@@ -256,63 +258,19 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-[#ccc3d8]">
               <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
+                <a href="#features" className="hover:text-[#d2bbff] transition-colors">
                   Features
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  Pricing
+                <a href="#how-it-works" className="hover:text-[#d2bbff] transition-colors">
+                  How It Works
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  API
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-3 sm:mb-4 text-xs sm:text-sm font-semibold text-[#e1e3e4] uppercase tracking-wider">
-              Company
-            </h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-[#ccc3d8]">
-              <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-3 sm:mb-4 text-xs sm:text-sm font-semibold text-[#e1e3e4] uppercase tracking-wider">
-              Legal
-            </h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-[#ccc3d8]">
-              <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-[#d2bbff] transition-colors">
-                  Security
-                </a>
+                <Link href="/login" className="hover:text-[#d2bbff] transition-colors">
+                  Sign In
+                </Link>
               </li>
             </ul>
           </div>
@@ -346,21 +304,18 @@ export const LandingPage = () => {
               <span className="text-lg sm:text-xl font-semibold text-[#e1e3e4] truncate min-w-0 flex-shrink-0">MarDocs</span>
             </div>
             <div className="hidden lg:flex items-center gap-1">
-              <Link href="/dashboard/documents" className="px-4 py-2 text-sm font-medium text-[#ccc3d8] hover:text-[#e1e3e4] hover:bg-[#7c3aed]/10 rounded-lg transition-all duration-200">
+              <a href="#features" className="px-4 py-2 text-sm font-medium text-[#ccc3d8] hover:text-[#e1e3e4] hover:bg-[#7c3aed]/10 rounded-lg transition-all duration-200">
                 Features
-              </Link>
-              <Link href="#" className="px-4 py-2 text-sm font-medium text-[#ccc3d8] hover:text-[#e1e3e4] hover:bg-[#7c3aed]/10 rounded-lg transition-all duration-200">
+              </a>
+              <a href="#how-it-works" className="px-4 py-2 text-sm font-medium text-[#ccc3d8] hover:text-[#e1e3e4] hover:bg-[#7c3aed]/10 rounded-lg transition-all duration-200">
                 How It Works
-              </Link>
-              <Link href="#" className="px-4 py-2 text-sm font-medium text-[#ccc3d8] hover:text-[#e1e3e4] hover:bg-[#7c3aed]/10 rounded-lg transition-all duration-200">
-                Pricing
-              </Link>
+              </a>
               <div className="mx-2 h-6 w-px bg-[#958da1]/20" />
-              <Button variant="outline" className="h-9 px-5 text-sm font-medium border-[#958da1]/30 hover:border-[#7c3aed] hover:text-[#7c3aed]">
-                Sign In
+              <Button variant="outline" className="h-9 px-5 text-sm font-medium border-[#958da1]/30 hover:border-[#7c3aed] hover:text-[#7c3aed]" asChild>
+                <Link href="/login">Sign In</Link>
               </Button>
-              <Button className="h-9 px-5 text-sm font-medium bg-[#7c3aed] hover:bg-[#6d37d6] shadow-lg shadow-[#7c3aed]/20">
-                Get Started
+              <Button className="h-9 px-5 text-sm font-medium bg-[#7c3aed] hover:bg-[#6d37d6] shadow-lg shadow-[#7c3aed]/20" asChild>
+                <Link href="/login">Get Started</Link>
               </Button>
             </div>
             {/* Mobile hamburger button */}
@@ -390,8 +345,8 @@ export const LandingPage = () => {
                 <div className="mb-4 px-2">
                   <p className="text-xs font-semibold text-[#ccc3d8] uppercase tracking-wider">Menu</p>
                 </div>
-                <Link
-                  href="/dashboard/documents"
+                <a
+                  href="#features"
                   onClick={handleMobileMenuClick}
                   className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
                 >
@@ -399,9 +354,9 @@ export const LandingPage = () => {
                     <Icon name="FileText" size={18} />
                     Features
                   </span>
-                </Link>
-                <Link
-                  href="#"
+                </a>
+                <a
+                  href="#how-it-works"
                   onClick={handleMobileMenuClick}
                   className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
                 >
@@ -409,24 +364,14 @@ export const LandingPage = () => {
                     <Icon name="Play" size={18} />
                     How It Works
                   </span>
-                </Link>
-                <Link
-                  href="#"
-                  onClick={handleMobileMenuClick}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
-                >
-                  <span className="flex items-center gap-3 font-medium">
-                    <Icon name="DollarSign" size={18} />
-                    Pricing
-                  </span>
-                </Link>
+                </a>
                 <div className="border-t border-[#958da1]/20 my-4" />
                 <Button
                   variant="outline"
                   className="w-full justify-start h-12 px-4 bg-[#1d2021]/50 border-[#958da1]/30 hover:border-[#7c3aed] hover:text-[#7c3aed]"
-                  onClick={handleMobileMenuClick}
+                  asChild
                 >
-                  Sign In
+                  <Link href="/login" onClick={handleMobileMenuClick}>Sign In</Link>
                 </Button>
                 <Button
                   className="w-full justify-start h-12 px-4 bg-[#7c3aed] hover:bg-[#6d37d6] shadow-lg shadow-[#7c3aed]/20"

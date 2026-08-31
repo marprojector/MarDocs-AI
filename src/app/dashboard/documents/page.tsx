@@ -334,10 +334,6 @@ export default function DocumentsPage() {
               className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#ccc3d8]"
             />
           </div>
-          <Button variant="outline" size="sm" className="h-10 px-3">
-            <Icon name="DownloadCloud" size={14} className="sm:mr-2" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
           <Button size="sm" className="h-10 px-3" onClick={() => {
             setIsLoading(true);
             setError(null);

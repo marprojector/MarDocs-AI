@@ -73,51 +73,16 @@ export default function HelpPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[#e1e3e4]">Email Support</label>
-                <div className="flex items-center gap-2 rounded-md border border-[#958da1]/30 bg-[#0c0f10] px-3 py-2">
-                  <Icon name="Mail" size={16} className="text-[#ccc3d8]" />
-                  <span className="text-sm text-[#ccc3d8]">support@mardocs.ai</span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#e1e3e4]">Documentation</label>
                 <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="#" target="_blank" rel="noopener noreferrer">
-                    <Icon name="BookOpen" size={16} className="mr-2" />
-                    Read the Docs
-                  </a>
-                </Button>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#e1e3e4]">Community</label>
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <a href="#" target="_blank" rel="noopener noreferrer">
-                    <Icon name="Users" size={16} className="mr-2" />
-                    Join Community
+                  <a href="mailto:support@mardocs.ai">
+                    <Icon name="Mail" size={16} className="mr-2" />
+                    support@mardocs.ai
                   </a>
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
-            <CardHeader>
-              <CardTitle className="text-[#e1e3e4]">Quick Links</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#">Status Page</a>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#">Privacy Policy</a>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#">Terms of Service</a>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start" asChild>
-                <a href="#">Changelog</a>
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </>
