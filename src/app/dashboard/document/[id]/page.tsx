@@ -120,6 +120,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
     }[]
   >([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [chatError, setChatError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [isFavorited, setIsFavorited] = useState(false);
@@ -455,6 +456,8 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
   const handleSendMessage = async (question = inputMessage) => {
     if (!question.trim() || isStreaming || !documentId) return;
 
+    setChatError(null);
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -539,10 +542,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
       }
     } catch (error) {
       console.error('[CHAT_ERROR]', error);
-      setData((prev) => ({
-        ...prev,
-        error: 'Failed to send message. Please try again.',
-      }));
+      setChatError("Couldn't generate an answer. Please try again.");
     } finally {
       setIsStreaming(false);
     }
@@ -683,6 +683,11 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
+                  {chatError && (
+                    <div role="alert" className="mx-3 mt-3 sm:mx-4 rounded-md border border-[#ffb4ab]/40 bg-[#ff5f56]/10 px-3 py-2 text-xs sm:text-sm text-[#ffb4ab]">
+                      {chatError}
+                    </div>
+                  )}
                   {/* Messages Container */}
                   <div onScroll={handleChatScroll} className="h-[400px] sm:h-[500px] overflow-y-auto bg-[#050505] p-3 sm:p-4 space-y-3 sm:space-y-4">
                     {chatMessages.length === 0 && !streamingContent && (

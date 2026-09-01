@@ -11,7 +11,7 @@ type Message = {
   content: string;
 };
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(
   request: NextRequest,
@@ -223,6 +223,21 @@ Instructions:
       model: openrouter(model),
       system: systemPrompt,
       messages: contextMessages,
+      async onError({ error }) {
+        log('stream error', {
+          errorType: error instanceof Error ? error.name : 'Unknown',
+        });
+        try {
+          const deleted = await prisma.message.deleteMany({
+            where: { id: assistantMessage.id, content: '' },
+          });
+          log('empty assistant message cleanup', { deleted: deleted.count });
+        } catch (cleanupError) {
+          log('assistant cleanup failure', {
+            errorType: cleanupError instanceof Error ? cleanupError.name : 'Unknown',
+          });
+        }
+      },
       async onFinish({ text, usage }) {
         await prisma.message.update({
           where: { id: assistantMessage.id },
