@@ -195,9 +195,9 @@ export default function DashboardPage() {
       />
 
       {/* Stats */}
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-1 gap-3 min-w-0 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.label} className="bg-[#1d2021]/50 border-[#958da1]/20">
+          <Card key={stat.label} className="bg-[#1d2021]/50 border-[#958da1]/20 min-w-0">
             <CardContent className="flex items-center gap-3 p-4 sm:p-6">
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#7c3aed]/20 text-[#d2bbff]">
                 <Icon name={stat.icon} size={20} />
@@ -211,8 +211,8 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-1">
+      <div className="grid gap-8 min-w-0 lg:grid-cols-3">
+        <div className="space-y-6 min-w-0 lg:col-span-1">
           <Card className="bg-[#1d2021]/50 border-[#958da1]/20">
             <CardHeader>
               <CardTitle className="text-[#e1e3e4]">Upload Document</CardTitle>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#958da1]/30 bg-[#0c0f10]/50 px-4 py-8 transition-colors hover:border-[#7c3aed]/50 hover:bg-[#7c3aed]/5 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full max-w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#958da1]/30 bg-[#0c0f10]/50 px-4 py-8 text-center transition-colors hover:border-[#7c3aed]/50 hover:bg-[#7c3aed]/5 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isUploading ? (
                   <>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="space-y-8 lg:col-span-2">
+        <div className="space-y-8 min-w-0 lg:col-span-2">
           <section>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[#e1e3e4]">Recent Documents</h2>
