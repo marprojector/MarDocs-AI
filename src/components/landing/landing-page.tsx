@@ -315,7 +315,7 @@ export const LandingPage = () => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden flex items-center justify-center p-1.5 sm:p-2 text-[#ccc3d8] hover:text-[#e1e3e4] transition-colors h-[48px] w-[48px] flex-shrink-0 rounded-lg hover:bg-[#1d2021]"
+              className="lg:hidden flex items-center justify-center p-1.5 sm:p-2 text-[#ccc3d8] hover:text-[#e1e3e4] transition-colors h-[48px] w-[48px] flex-shrink-0 rounded-lg hover:bg-[#1d2021]"
               aria-label="Toggle menu"
               aria-expanded={isMobileMenuOpen}
             >
@@ -324,60 +324,75 @@ export const LandingPage = () => {
           </div>
         </div>
 
-        {/* Mobile menu - slides in from left */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 left-0 w-full max-w-[320px] min-h-screen bg-[#111415] border-r border-[#958da1]/20 z-[60] lg:hidden overflow-y-auto"
-            >
-              <div className="px-4 pt-4 pb-6 space-y-1">
-                <div className="mb-4 px-2">
-                  <p className="text-xs font-semibold text-[#ccc3d8] uppercase tracking-wider">Menu</p>
-                </div>
-                <a
-                  href="#features"
-                  onClick={handleMobileMenuClick}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
-                >
-                  <span className="flex items-center gap-3 font-medium">
-                    <Icon name="FileText" size={18} />
-                    Features
-                  </span>
-                </a>
-                <a
-                  href="#how-it-works"
-                  onClick={handleMobileMenuClick}
-                  className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
-                >
-                  <span className="flex items-center gap-3 font-medium">
-                    <Icon name="Play" size={18} />
-                    How It Works
-                  </span>
-                </a>
-                <div className="border-t border-[#958da1]/20 my-4" />
-                <Button
-                  variant="outline"
-                  className="w-full justify-start h-12 px-4 bg-[#1d2021]/50 border-[#958da1]/30 hover:border-[#7c3aed] hover:text-[#7c3aed]"
-                  asChild
-                >
-                  <Link href="/login" onClick={handleMobileMenuClick}>Sign In</Link>
-                </Button>
-                <Button
-                  className="w-full justify-start h-12 px-4 bg-[#7c3aed] hover:bg-[#6d37d6] shadow-lg shadow-[#7c3aed]/20"
-                  asChild
-                  onClick={handleMobileMenuClick}
-                >
-                  <Link href="/dashboard">Get Started</Link>
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/60 z-[55] lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed top-0 left-0 w-full max-w-[320px] min-h-dvh bg-[#111415] border-r border-[#958da1]/20 z-[60] lg:hidden overflow-y-auto"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+          >
+            <div className="px-4 pt-4 pb-6 space-y-1">
+              <div className="mb-4 px-2">
+                <p className="text-xs font-semibold text-[#ccc3d8] uppercase tracking-wider">Menu</p>
+              </div>
+              <a
+                href="#features"
+                onClick={handleMobileMenuClick}
+                className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
+              >
+                <span className="flex items-center gap-3 font-medium">
+                  <Icon name="FileText" size={18} />
+                  Features
+                </span>
+              </a>
+              <a
+                href="#how-it-works"
+                onClick={handleMobileMenuClick}
+                className="flex items-center justify-between px-4 py-3.5 rounded-lg bg-[#1d2021]/50 text-[#ccc3d8] hover:bg-[#7c3aed]/20 hover:text-[#d2bbff] transition-all duration-200"
+              >
+                <span className="flex items-center gap-3 font-medium">
+                  <Icon name="Play" size={18} />
+                  How It Works
+                </span>
+              </a>
+              <div className="border-t border-[#958da1]/20 my-4" />
+              <Button
+                variant="outline"
+                className="w-full justify-start h-12 px-4 bg-[#1d2021]/50 border-[#958da1]/30 hover:border-[#7c3aed] hover:text-[#7c3aed]"
+                asChild
+              >
+                <Link href="/login" onClick={handleMobileMenuClick}>Sign In</Link>
+              </Button>
+              <Button
+                className="w-full justify-start h-12 px-4 bg-[#7c3aed] hover:bg-[#6d37d6] shadow-lg shadow-[#7c3aed]/20"
+                asChild
+                onClick={handleMobileMenuClick}
+              >
+                <Link href="/dashboard">Get Started</Link>
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <main className="overflow-x-hidden">
         <HeroSection />
         <FeaturesSection />
