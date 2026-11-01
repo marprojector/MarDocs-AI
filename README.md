@@ -6,7 +6,7 @@ MarDocs AI is an AI-powered document analysis and conversation platform that hel
 
 Upload your documents, ask questions in natural language, and get clear answers backed by references from the source material.
 
-**Live Demo:** [MarDocs AI](https://mardocs-ai.vercel.app/)
+**Live Demo:** [MarDocs AI](https://mardocs.ammararief.my.id/)
 
 <img width="1710" height="959" alt="mardocs-ai-preview" src="https://github.com/user-attachments/assets/c80d747a-0c42-44ee-8d3f-700931897a48" />
 
