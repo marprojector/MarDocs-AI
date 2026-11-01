@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { DocumentSchema, CreateDocumentSchema } from '@/lib/document-validation';
-import { put, del } from '@vercel/blob';
+import { buildDocumentObjectKey, putObject, deleteObjectByUrl } from '@/lib/storage';
 import { NextRequest } from 'next/server';
 
 // Allowed file types for upload
@@ -47,13 +47,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Read file buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    // Upload to Vercel Blob
-    const blob = await put(`documents/${session.user.id}/${Date.now()}-${file.name}`, buffer, {
-      access: 'private',
-    });
+    // Upload to Supabase Storage
+    const objectKey = buildDocumentObjectKey(session.user.id, file.name);
+    const uploaded = await putObject(objectKey, await file.arrayBuffer(), file.type);
 
     // Create document record
     const documentData = {
@@ -62,15 +58,15 @@ export async function POST(request: NextRequest) {
       fileName: file.name,
       fileType: file.type,
       fileSize: file.size,
-      fileUrl: blob.url,
+      fileUrl: uploaded.fileUrl,
       status: 'PENDING' as const,
     };
 
     const validation = CreateDocumentSchema.safeParse(documentData);
 
     if (!validation.success) {
-      // Delete uploaded file if validation fails
-      await del(blob.url);
+      // Delete uploaded object if validation fails
+      await deleteObjectByUrl(uploaded.fileUrl);
       return Response.json(
         { error: 'Invalid document data', details: validation.error.flatten() },
         { status: 400 }
@@ -89,20 +85,11 @@ export async function POST(request: NextRequest) {
     return Response.json(result);
   } catch (error) {
     console.error('[UPLOAD_POST]', error);
-    
-    // Check if it's a Vercel Blob error
-    const isBlobError = error && typeof error === 'object' && 'name' in error && error.name === 'BlobError';
-    
-    // Return 500 for Blob errors or other server errors
-    if (isBlobError) {
-      return Response.json({ error: 'Failed to upload to storage' }, { status: 500 });
+
+    if (error instanceof Error && error.message.includes('Supabase Storage is not configured')) {
+      return Response.json({ error: 'File storage is not configured' }, { status: 500 });
     }
-    
-    // If it's a validation error from Zod, return it
-    if (error instanceof Error && 'flatten' in error) {
-      return Response.json({ error: 'Validation failed' }, { status: 400 });
-    }
-    
+
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

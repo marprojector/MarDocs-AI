@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { DocumentSchema } from '@/lib/document-validation';
-import { del } from '@vercel/blob';
+import { deleteObjectByUrl } from '@/lib/storage';
 import { NextRequest } from 'next/server';
 
 export async function GET(
@@ -110,10 +110,10 @@ export async function DELETE(
 
     try {
       if (document.fileUrl) {
-        await del(document.fileUrl);
+        await deleteObjectByUrl(document.fileUrl);
       }
-    } catch (blobError) {
-      console.error('[BLOB_DELETE]', blobError);
+    } catch (storageError) {
+      console.error('[SUPABASE_STORAGE_DELETE]', storageError);
     }
 
     await prisma.document.delete({

@@ -900,7 +900,7 @@ export default function DocumentDetailPage({ params }: { params: Promise<{ id: s
               {isPDF ? (
                 <div className="flex h-full min-h-[500px] items-center justify-center bg-[#1d2021]/50 rounded-lg">
                   <object
-                    data={data.document.fileUrl}
+                    data={`/api/documents/${data.document.id}/file`}
                     type="application/pdf"
                     className="w-full h-[600px] rounded-lg border border-[#958da1]/20"
                   >

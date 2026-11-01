@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { get } from '@vercel/blob';
+import { getObject, objectKeyFromFileUrl } from '@/lib/storage';
 import { NextRequest } from 'next/server';
 
 export async function GET(
@@ -27,26 +27,36 @@ export async function GET(
       return Response.json({ error: 'Document not found' }, { status: 404 });
     }
 
+    const objectKey = objectKeyFromFileUrl(document.fileUrl);
+
+    if (!objectKey) {
+      return Response.json(
+        { error: 'This file is stored on a legacy storage backend and is no longer available' },
+        { status: 410 }
+      );
+    }
+
     try {
-      const blobData = await get(document.fileUrl, { access: 'private' });
-      if (!blobData) {
-        throw new Error('File not found');
+      const object = await getObject(objectKey);
+      if (!object) {
+        return Response.json({ error: 'File not found' }, { status: 404 });
       }
+
       const contentType = document.fileType || 'application/octet-stream';
       const fileName = document.fileName || 'document';
 
       const headers = new Headers();
       headers.set('Content-Type', contentType);
-      headers.set('Content-Disposition', `inline; filename="${fileName}"`);
-      headers.set('Cache-Control', 'no-store');
+      headers.set('Content-Disposition', `inline; filename="${fileName.replace(/"/g, '')}"`);
+      headers.set('Cache-Control', 'private, no-store');
       headers.set('X-Content-Type-Options', 'nosniff');
 
-      return new Response(blobData.stream, {
+      return new Response(object.body, {
         status: 200,
         headers,
       });
-    } catch (blobError) {
-      console.error('[BLOB_GET]', blobError);
+    } catch (storageError) {
+      console.error('[SUPABASE_STORAGE_GET]', storageError);
       return Response.json({ error: 'Failed to retrieve file' }, { status: 500 });
     }
   } catch (error) {

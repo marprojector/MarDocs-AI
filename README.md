@@ -100,8 +100,10 @@ MarDocs AI is built using modern web technologies.
 | **PostgreSQL** | Database |
 | **OpenAI AI SDK** | AI integration |
 | **NextAuth** | Authentication |
-| **Vercel Blob** | Document/file storage |
-| **PDF.js** | PDF processing |
+| **Supabase Storage** | Document/file storage |
+| **Cloudflare Workers** | Hosting (OpenNext adapter) |
+| **Cloudflare Hyperdrive** | Pooled PostgreSQL access from Workers |
+| **unpdf** | PDF processing |
 | **Mammoth** | DOCX processing |
 | **Zod** | Schema validation |
 | **Framer Motion** | UI animations |
@@ -118,10 +120,11 @@ Make sure you have the following installed:
 
 - Node.js
 - npm
-- PostgreSQL database
-- An OpenAI API key
-- Vercel Blob storage (for file storage)
-- Authentication configuration
+- PostgreSQL database (with the `vector` extension for RAG)
+- An OpenRouter API key
+- A Voyage AI API key (embeddings)
+- A Supabase project with a private Storage bucket
+- Google and/or GitHub OAuth credentials
 
 ### 1. Clone the repository
 
@@ -138,20 +141,28 @@ npm install
 
 ### 3. Configure environment variables
 
-Create a `.env` file in the root directory:
+Copy `.env.local.example` to `.env.local` and fill in the values:
 
 ```env
 # Database
 DATABASE_URL="your_postgresql_connection_string"
 
-# OpenAI
-OPENAI_API_KEY="your_openai_api_key"
-
 # Authentication
 AUTH_SECRET="your_auth_secret"
+AUTH_GOOGLE_ID="your_google_oauth_client_id"
+AUTH_GOOGLE_SECRET="your_google_oauth_client_secret"
+AUTH_GITHUB_ID="your_github_oauth_client_id"
+AUTH_GITHUB_SECRET="your_github_oauth_client_secret"
 
-# Vercel Blob
-BLOB_READ_WRITE_TOKEN="your_vercel_blob_token"
+# AI
+OPENROUTER_API_KEY="your_openrouter_api_key"
+OPENROUTER_MODEL="openrouter/free"
+VOYAGE_API_KEY="your_voyage_api_key"
+
+# Supabase Storage (private bucket)
+SUPABASE_URL="https://your-project.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
+SUPABASE_STORAGE_BUCKET="mardocs"
 ```
 
 > **Important:** Never commit your `.env` file or expose your API keys publicly.
@@ -252,13 +263,53 @@ Runs ESLint to check the codebase.
 
 ## 🌐 Deployment
 
-MarDocs AI is deployed using **Vercel**.
+MarDocs is deployed on **Cloudflare Workers** using the [OpenNext](https://opennext.js.org/cloudflare) adapter.
 
 The production application is available at:
 
-**https://mardocs-ai.vercel.app/**
+**https://mardocs.ammararief.my.id**
 
-For deployment, make sure all required environment variables are configured in your hosting provider.
+### Cloudflare configuration
+
+- `wrangler.jsonc` declares the Worker, static assets, the custom domain, and the `HYPERDRIVE` binding.
+- `open-next.config.ts` holds the OpenNext configuration.
+- Database access goes through Cloudflare Hyperdrive; Prisma falls back to `DATABASE_URL` when no binding is present.
+- Files are stored in Supabase Storage and served only through the authenticated `/api/documents/[id]/file` route.
+
+### Deploy
+
+```bash
+npm run deploy
+```
+
+Deployment needs a local Hyperdrive connection string so Wrangler can resolve the binding during the build:
+
+```bash
+export CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE="$DATABASE_URL"
+npm run deploy
+```
+
+Configure these Worker secrets before deploying:
+
+```bash
+npx wrangler secret put AUTH_SECRET
+npx wrangler secret put AUTH_GOOGLE_ID
+npx wrangler secret put AUTH_GOOGLE_SECRET
+npx wrangler secret put AUTH_GITHUB_ID
+npx wrangler secret put AUTH_GITHUB_SECRET
+npx wrangler secret put OPENROUTER_API_KEY
+npx wrangler secret put VOYAGE_API_KEY
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+```
+
+### Supabase Storage setup
+
+1. Create a Supabase project.
+2. Create a private bucket named `mardocs`.
+3. Add the project URL and service-role key as Worker secrets.
+
+Records created before the migration still point at legacy Vercel Blob URLs. Those files cannot be served until they are re-uploaded or migrated with the old Blob token.
 
 ---
 

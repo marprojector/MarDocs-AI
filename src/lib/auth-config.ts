@@ -1,17 +1,8 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
 import { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
-
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set");
-}
-
-const adapter = new PrismaPg(connectionString);
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "@/lib/prisma";
 
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
@@ -41,4 +32,5 @@ export const authConfig: NextAuthConfig = {
     maxAge: 30 * 24 * 60 * 60,
   },
   secret: process.env.AUTH_SECRET,
+  trustHost: true,
 };

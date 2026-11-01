@@ -1,20 +1,11 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { get } from '@vercel/blob';
+import { getObject, objectKeyFromFileUrl } from '@/lib/storage';
 import { extractRawText } from 'mammoth';
+import { extractText, getDocumentProxy } from 'unpdf';
 import { NextRequest } from 'next/server';
 import { chunkText } from '@/lib/chunking';
 import { generateEmbeddings, EmbeddingError } from '@/lib/embedding';
-
-// Configure pdfjs-dist for Node.js environment
-import * as pdfjs from 'pdfjs-dist';
-// Set worker src to use the built-in worker that comes with pdfjs-dist
-if (typeof pdfjs.GlobalWorkerOptions !== 'undefined') {
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString();
-}
-
-// Increase timeout for embedding generation (large documents)
-export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -52,52 +43,29 @@ export async function POST(request: NextRequest) {
   });
 
   try {
-    const blobData = await get(document.fileUrl, { access: 'private' });
-    if (!blobData || blobData.statusCode !== 200 || !blobData.stream) {
+    const objectKey = objectKeyFromFileUrl(document.fileUrl);
+    if (!objectKey) {
+      throw new Error('File is stored on a legacy storage backend and cannot be processed');
+    }
+
+    const object = await getObject(objectKey);
+    if (!object) {
       throw new Error('File not found');
     }
 
-    // Convert stream to buffer for text extraction
-    const chunks: Uint8Array[] = [];
-    const reader = blobData.stream.getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (value) chunks.push(value);
-    }
-    const concatenated = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
-    let offset = 0;
-    for (const chunk of chunks) {
-      concatenated.set(chunk, offset);
-      offset += chunk.length;
-    }
-    const buffer = Buffer.from(concatenated);
+    const buffer = new Uint8Array(await new Response(object.body).arrayBuffer());
     const fileType = document.fileType;
 
     let extractedText: string;
 
-    // Text extraction implementation
     if (fileType === 'text/plain') {
-      extractedText = buffer.toString('utf-8');
+      extractedText = new TextDecoder().decode(buffer);
     } else if (fileType === 'application/pdf') {
-      // PDF extraction using pdfjs-dist (Node.js compatible)
-      // pdfjs-dist requires Uint8Array, not Buffer
-      const data = new Uint8Array(buffer);
-      const loadingTask = pdfjs.getDocument({ data });
-      const pdf = await loadingTask.promise;
-      const pages: string[] = [];
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item) => (item as { str: string }).str)
-          .join(' ');
-        pages.push(pageText);
-      }
-      extractedText = pages.join('\n\n');
+      const pdf = await getDocumentProxy(buffer);
+      const { text } = await extractText(pdf, { mergePages: true });
+      extractedText = text;
     } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      // DOCX extraction using mammoth
-      const result = await extractRawText({ buffer: buffer });
+      const result = await extractRawText({ buffer: Buffer.from(buffer) });
       extractedText = result.value;
     } else {
       throw new Error(`Unsupported file type: ${fileType}`);
@@ -125,10 +93,10 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('[RAG_INDEXING] Starting for document:', id);
-      
+
       // Step 1: Chunk the text
       const documentChunks = chunkText(extractedText);
-      
+
       if (documentChunks.length === 0) {
         throw new Error('No chunks generated from extracted text');
       }
@@ -209,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
       console.error('[RAG_INDEXING_ERROR]', error);
-      
+
       // Determine safe error message (don't expose API keys)
       if (error instanceof EmbeddingError) {
         ragIndexingError = 'Embedding generation failed. Please try reprocessing.';
@@ -233,8 +201,8 @@ export async function POST(request: NextRequest) {
       console.log('[RAG_INDEXING] Failed, but document text preserved');
     }
 
-    return Response.json({ 
-      message: 'Processing completed', 
+    return Response.json({
+      message: 'Processing completed',
       status: 'COMPLETED',
       indexed: ragIndexingSuccess,
       indexingError: ragIndexingError,
@@ -242,7 +210,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Log the full error for debugging
     console.error('[DOCX_PROCESSING_ERROR]', error);
-    
+
     await prisma.document.update({
       where: { id },
       data: {
